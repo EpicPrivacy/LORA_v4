@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "435840320040",
+    "firebase_url": "https://lorav4-ad71d-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "lorav4-ad71d",
+    "storage_bucket": "lorav4-ad71d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435840320040:android:8a8688fe2686f422d22b1d",
+        "android_client_info": {
+          "package_name": "com.example.lorav4"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBnl5UIhtbEDD_7AiQ1W7N6kAfekPL4wU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
