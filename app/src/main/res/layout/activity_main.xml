@@ -19,10 +19,10 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="223dp"
-            android:layout_height="193dp"
-            android:src="@drawable/t__1_"
-            tools:srcCompat="@drawable/t__1_" />
+            android:layout_width="167dp"
+            android:layout_height="144dp"
+            android:src="@drawable/t_ruck"
+            tools:srcCompat="@drawable/t_ruck" />
 
         <TextView
             android:id="@+id/textView4"
