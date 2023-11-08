@@ -38,7 +38,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
-        android:text="Next" />
+        android:text="Next"
+        android:background="#000000"
+        android:textColor="#ffff"/>
 
     <ProgressBar
         android:id="@+id/progressBar"
