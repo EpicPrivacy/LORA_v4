@@ -10,9 +10,11 @@ import android.widget.EditText;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.hbb20.CountryCodePicker;
 
 public class Sign_up extends AppCompatActivity {
 
+    CountryCodePicker countryCodePicker;
     EditText first_name,last_name,m_number,delivery_add,password;
     Button terms_condition,clear,submit;
 
@@ -23,6 +25,8 @@ public class Sign_up extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+
+        countryCodePicker = findViewById(R.id.login_countrycode);
 
         clear = findViewById(R.id.clear);
         submit = findViewById(R.id.submit);
@@ -43,6 +47,7 @@ public class Sign_up extends AppCompatActivity {
                 reference = DB.getReference().child("LORA");
 
                 register();
+
 
             }
         });
@@ -135,7 +140,17 @@ public class Sign_up extends AppCompatActivity {
 
         reference.child(mnumber).setValue(helper);
 
-        startActivity(new Intent(Sign_up.this, Verify_otp.class));
+        countryCodePicker.registerCarrierNumberEditText(m_number);
+        submit.setOnClickListener((v)->{
+            if(!countryCodePicker.isValidFullNumber()){
+                m_number.setError("Phone number not valid");
+                return;
+            }
+            Intent intent = new Intent(Sign_up.this,Verify_otp.class);
+            intent.putExtra("phone",countryCodePicker.getFullNumberWithPlus());
+            startActivity(intent);
+        });
+
 
     }
 }
