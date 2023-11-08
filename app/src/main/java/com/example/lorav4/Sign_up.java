@@ -44,7 +44,6 @@ public class Sign_up extends AppCompatActivity {
 
                 register();
 
-
             }
         });
 
@@ -136,6 +135,7 @@ public class Sign_up extends AppCompatActivity {
 
         reference.child(mnumber).setValue(helper);
 
-        startActivity(new Intent(Sign_up.this, MainActivity.class));
+        startActivity(new Intent(Sign_up.this, Verify_otp.class));
+
     }
 }

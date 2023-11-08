@@ -6,13 +6,18 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".Sign_up">
+    tools:context=".Sign_up"
+    android:background="#face2f"
+    >
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TextView"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:text="Client Details"
+        android:textColor="@color/black"
         app:layout_constraintBottom_toTopOf="@+id/last_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -23,6 +28,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="9dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:ems="10"
         android:hint="First Name"
         android:inputType="text"
@@ -34,6 +41,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="9dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:ems="10"
         android:hint="Last Name"
         android:inputType="text"
@@ -45,6 +54,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="9dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:ems="10"
         android:hint="Mobile Number"
         android:inputType="text"
@@ -56,7 +67,9 @@
         android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TextView"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:text="Delivery Location"
         app:layout_constraintBottom_toTopOf="@+id/delivery_add"
         app:layout_constraintTop_toBottomOf="@+id/m_number"
         tools:layout_editor_absoluteX="27dp" />
@@ -66,6 +79,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="9dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:ems="10"
         android:hint="Delivery Address"
         android:inputType="text"
@@ -76,28 +91,40 @@
         android:id="@+id/textView3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TextView"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:text="Password"
         app:layout_constraintBottom_toTopOf="@+id/password"
         app:layout_constraintTop_toBottomOf="@+id/delivery_add"
         tools:layout_editor_absoluteX="29dp" />
 
-    <EditText
-        android:id="@+id/password"
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="9dp"
-        android:ems="10"
-        android:hint="Password"
-        android:inputType="text"
-        android:password="true"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        app:passwordToggleEnabled="true"
         tools:layout_editor_absoluteX="24dp"
-        tools:layout_editor_absoluteY="435dp" />
+        tools:layout_editor_absoluteY="435dp" >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:ems="15"
+            android:inputType="textPassword" />
+
+    </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/tems_condition"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/black"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:background="#000000"
+        android:textColor="#ffff"
         android:text="Terms And Conditons"
         android:textColorHighlight="#FFFFFF"
         android:textColorLink="#FFFFFF" />
@@ -113,12 +140,16 @@
             android:id="@+id/clear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Clear" />
+            android:text="Clear"
+            android:background="#000000"
+            android:textColor="#ffff"/>
 
         <Button
             android:id="@+id/submit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Submit" />
+            android:text="Submit"
+            android:background="#000000"
+            android:textColor="#ffff"/>
     </LinearLayout>
 </LinearLayout>
