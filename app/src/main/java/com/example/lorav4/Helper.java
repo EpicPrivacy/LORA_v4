@@ -4,7 +4,7 @@ public class Helper {
 
     String first_name,last_namse,m_number,delivery_add,password;
 
-    public Helper() {
+    public Helper(String fname, String lname, String mnumber, String delivery, String deliver, String pass) {
 
     }
 

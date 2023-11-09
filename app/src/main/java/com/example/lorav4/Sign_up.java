@@ -47,13 +47,8 @@ public class Sign_up extends AppCompatActivity {
                 reference = DB.getReference().child("LORA");
 
                 register();
-
-
             }
         });
-
-
-
     }
     private boolean validateFirstName(){
         String val = first_name.getEditableText().toString();
@@ -100,6 +95,7 @@ public class Sign_up extends AppCompatActivity {
     private boolean validateDeliveryAdd(){
         String val = delivery_add.getEditableText().toString();
 
+
         if(val.isEmpty()){
             delivery_add.setError("Field cannot be empty");
             return false;
@@ -107,7 +103,10 @@ public class Sign_up extends AppCompatActivity {
             delivery_add.setError(null);
             return true;
         }
+
+
     }
+
     private boolean validatePassword(){
         String val = password.getEditableText().toString();
         String PasswordVal = "(?=\\S+$)"+".{6,}";
@@ -147,7 +146,7 @@ public class Sign_up extends AppCompatActivity {
                 return;
             }
             Intent intent = new Intent(Sign_up.this,Verify_otp.class);
-            intent.putExtra("phone",countryCodePicker.getFullNumberWithPlus());
+            intent.putExtra("m_number",countryCodePicker.getFullNumberWithPlus());
             startActivity(intent);
         });
 

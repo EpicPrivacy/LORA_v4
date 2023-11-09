@@ -14,10 +14,11 @@
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:text="Client Details"
         android:textColor="@color/black"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/last_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,6 +34,7 @@
         android:ems="10"
         android:hint="First Name"
         android:inputType="text"
+        android:textColorHint="#333333"
         app:layout_constraintBottom_toTopOf="@+id/last_name"
         tools:layout_editor_absoluteX="24dp" />
 
@@ -46,6 +48,7 @@
         android:ems="10"
         android:hint="Last Name"
         android:inputType="text"
+        android:textColorHint="#333333"
         app:layout_constraintBottom_toTopOf="@+id/m_number"
         tools:layout_editor_absoluteX="27dp" />
 
@@ -59,6 +62,7 @@
             android:id="@+id/login_countrycode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
             app:ccp_showFlag="false"
             app:ccp_showNameCode="false" />
 
@@ -73,20 +77,22 @@
             android:hint="Mobile Number"
             android:inputType="text"
             android:phoneNumber="true"
+            android:textColorHint="#333333"
             tools:layout_editor_absoluteX="24dp"
             tools:layout_editor_absoluteY="187dp" />
 
     </LinearLayout>
 
 
-
     <TextView
         android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:text="Delivery Location"
+        android:textColor="#000000"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/delivery_add"
         app:layout_constraintTop_toBottomOf="@+id/m_number"
         tools:layout_editor_absoluteX="27dp" />
@@ -99,18 +105,22 @@
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:ems="10"
-        android:hint="Delivery Address"
+        android:hint="House No. / Barangay / City / Province"
         android:inputType="text"
+        android:textColorHint="#333333"
         tools:layout_editor_absoluteX="18dp"
         tools:layout_editor_absoluteY="303dp" />
+
 
     <TextView
         android:id="@+id/textView3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:text="Password"
+        android:textColor="#000000"
+        android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/password"
         app:layout_constraintTop_toBottomOf="@+id/delivery_add"
         tools:layout_editor_absoluteX="29dp" />
@@ -150,23 +160,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:layout_margin="30dp"
+        android:layout_marginTop="35dp"
+        android:layout_marginRight="30dp"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/clear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Clear"
             android:background="#000000"
-            android:textColor="#ffff"/>
+            android:text="Clear"
+            android:textColor="#ffff" />
 
         <Button
             android:id="@+id/submit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Submit"
             android:background="#000000"
-            android:textColor="#ffff"/>
+            android:text="Submit"
+            android:textColor="#ffff" />
     </LinearLayout>
 </LinearLayout>

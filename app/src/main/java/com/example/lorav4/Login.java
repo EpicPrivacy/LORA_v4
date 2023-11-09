@@ -44,6 +44,15 @@ public class Login extends AppCompatActivity {
 
             }
         });
+        btn_forgot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                startActivity(new Intent(Login.this, Forgot_password.class));
+                finish();
+
+            }
+        });
     }
 
     private boolean ValidateRegNumber(){

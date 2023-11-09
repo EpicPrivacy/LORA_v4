@@ -5,60 +5,100 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Shop_details">
+    tools:context=".Shop_details"
+    android:background="#face2f">
 
     <TextView
         android:id="@+id/textView10"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TextView" />
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginRight="15dp"
+        android:fontFamily="@font/bungee"
+        android:text="Contact Information"
+        android:textSize="48sp" />
 
     <TextView
         android:id="@+id/textView11"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TextView" />
+        android:layout_margin="15dp"
+        android:text="TextView"
+        android:textSize="24sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center"
         android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/imageView3"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@tools:sample/avatars" />
+            android:layout_margin="15dp"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/textView12"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="TextView" />
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="91dp"
+                android:layout_height="83dp"
+                android:src="@drawable/phone"
+                tools:srcCompat="@drawable/phone" />
 
-        <ImageView
-            android:id="@+id/imageView4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:src="@tools:sample/avatars" />
+            <TextView
+                android:id="@+id/textView12"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="+639564001376"
+                android:textSize="24sp" />
+        </LinearLayout>
 
-        <TextView
-            android:id="@+id/textView13"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TextView" />
+            android:layout_margin="15dp"
+            android:orientation="horizontal">
 
-        <ImageView
-            android:id="@+id/imageView5"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:src="@tools:sample/avatars" />
+            <ImageView
+                android:id="@+id/imageView4"
+                android:layout_width="114dp"
+                android:layout_height="87dp"
+                android:src="@drawable/email"
+                tools:srcCompat="@drawable/email" />
 
-        <TextView
-            android:id="@+id/textView14"
+            <TextView
+                android:id="@+id/textView13"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Lora_official@gmail.com"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TextView" />
+            android:layout_margin="15dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageView7"
+                android:layout_width="98dp"
+                android:layout_height="81dp"
+                android:src="@drawable/location"
+                tools:srcCompat="@drawable/location" />
+
+            <TextView
+                android:id="@+id/textView14"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="56JG+C3 Los Baños, Laguna"
+                android:textSize="24sp" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>

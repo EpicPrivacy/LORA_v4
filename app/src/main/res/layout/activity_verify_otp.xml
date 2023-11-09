@@ -21,6 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="@font/bungee"
+        android:gravity="center"
         android:text="sent to your mobile number"
         android:textSize="34sp" />
 
