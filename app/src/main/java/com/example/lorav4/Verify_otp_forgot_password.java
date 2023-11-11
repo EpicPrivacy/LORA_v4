@@ -25,39 +25,38 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-public class Forgot_password extends AppCompatActivity {
-
+public class Verify_otp_forgot_password extends AppCompatActivity {
     String m_number;
     Long timeoutSeconds = 60L;
     String verificationCode;
     PhoneAuthProvider.ForceResendingToken  resendingToken;
 
-    EditText mobile_otp;
-    Button btn_send;
-    ProgressBar progressBar2;
-    TextView resend_txtview;
+    EditText forgot_otp_input;
+    Button forgot_btn_next;
+    ProgressBar forgot_progressBar;
+    TextView forgot_btn_resend;
     FirebaseAuth mAuth = FirebaseAuth.getInstance();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_forgot_password);
-
-        mobile_otp = findViewById(R.id.mobile_otp);
-        btn_send = findViewById(R.id.btn_send);
-        progressBar2 = findViewById(R.id.progressBar2);
-        resend_txtview = findViewById(R.id.resend_txtview);
+        setContentView(R.layout.activity_verify_otp_forgot_password);
+        forgot_otp_input = findViewById(R.id.forgot_otp_input);
+        forgot_btn_next = findViewById(R.id.forgot_btn_next);
+        forgot_progressBar = findViewById(R.id.forgot_progressBar);
+        forgot_btn_resend = findViewById(R.id.forgot_btn_resend);
 
         m_number = getIntent().getExtras().getString("m_number");
 
         sendOtp(m_number,false);
 
-        btn_send.setOnClickListener(v -> {
-            String enteredOtp  = mobile_otp.getText().toString();
+        forgot_btn_next.setOnClickListener(v -> {
+            String enteredOtp  = forgot_otp_input.getText().toString();
             PhoneAuthCredential credential =  PhoneAuthProvider.getCredential(verificationCode,enteredOtp);
             signIn(credential);
+
         });
 
-        resend_txtview.setOnClickListener((v)->{
+        forgot_btn_resend.setOnClickListener((v)->{
             sendOtp(m_number,true);
         });
 
@@ -103,11 +102,11 @@ public class Forgot_password extends AppCompatActivity {
 
     void setInProgress(boolean inProgress){
         if(inProgress){
-            progressBar2.setVisibility(View.VISIBLE);
-            btn_send.setVisibility(View.GONE);
+            forgot_progressBar.setVisibility(View.VISIBLE);
+            forgot_btn_next.setVisibility(View.GONE);
         }else{
-            progressBar2.setVisibility(View.GONE);
-            btn_send.setVisibility(View.VISIBLE);
+            forgot_progressBar.setVisibility(View.GONE);
+            forgot_btn_next.setVisibility(View.VISIBLE);
         }
     }
 
@@ -119,9 +118,10 @@ public class Forgot_password extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 setInProgress(false);
                 if(task.isSuccessful()){
-                    Intent intent = new Intent(Forgot_password.this,Verify_otp_forgot_password.class);
+                    Intent intent = new Intent(Verify_otp_forgot_password.this,Change_password.class);
                     intent.putExtra("m_number",m_number);
                     startActivity(intent);
+                    finish();
                 }else{
                     AndroidUtil.showtoast(getApplicationContext(),"OTP verification failed");
                 }
@@ -132,18 +132,18 @@ public class Forgot_password extends AppCompatActivity {
     }
 
     void startResendTimer(){
-        resend_txtview.setEnabled(false);
+        forgot_btn_resend.setEnabled(false);
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 timeoutSeconds--;
-                resend_txtview.setText("Resend OTP in "+timeoutSeconds +" seconds");
+                forgot_btn_resend.setText("Resend OTP in "+timeoutSeconds +" seconds");
                 if(timeoutSeconds<=0){
                     timeoutSeconds =60L;
                     timer.cancel();
                     runOnUiThread(() -> {
-                        resend_txtview.setEnabled(true);
+                        forgot_btn_resend.setEnabled(true);
                     });
                 }
             }

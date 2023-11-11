@@ -49,7 +49,7 @@ public class Verify_otp extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         btn_resend = findViewById(R.id.btn_resend);
 
-        m_number = getIntent().getExtras().getString("phone");
+        m_number = getIntent().getExtras().getString("m_number");
 
         sendOtp(m_number,false);
 
@@ -57,11 +57,13 @@ public class Verify_otp extends AppCompatActivity {
             String enteredOtp  = otp_input.getText().toString();
             PhoneAuthCredential credential =  PhoneAuthProvider.getCredential(verificationCode,enteredOtp);
             signIn(credential);
+
         });
 
         btn_resend.setOnClickListener((v)->{
             sendOtp(m_number,true);
         });
+        finish();
 
     }
 
@@ -122,8 +124,9 @@ public class Verify_otp extends AppCompatActivity {
                 setInProgress(false);
                 if(task.isSuccessful()){
                     Intent intent = new Intent(Verify_otp.this,MainActivity.class);
-                    intent.putExtra("phone",m_number);
+                    intent.putExtra("m_number",m_number);
                     startActivity(intent);
+                    finish();
                 }else{
                     AndroidUtil.showtoast(getApplicationContext(),"OTP verification failed");
                 }

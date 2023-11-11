@@ -1,5 +1,6 @@
 package com.example.lorav4;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -8,9 +9,18 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.auth.User;
 import com.hbb20.CountryCodePicker;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class Sign_up extends AppCompatActivity {
 
@@ -45,6 +55,7 @@ public class Sign_up extends AppCompatActivity {
 
                 DB = FirebaseDatabase.getInstance();
                 reference = DB.getReference().child("LORA");
+
 
                 register();
             }
@@ -123,7 +134,8 @@ public class Sign_up extends AppCompatActivity {
             return true;
         }
     }
-    public void register(){
+
+    public void register() {
 
         if (!validateFirstName() | !validateLastName() | !validateMNumber() | !validateDeliveryAdd() | !validatePassword()) {
             return;
@@ -135,21 +147,38 @@ public class Sign_up extends AppCompatActivity {
         String delivery = delivery_add.getText().toString();
         String pass = password.getText().toString();
 
-        Helper helper = new Helper(fname,lname,mnumber,delivery,pass);
 
-        reference.child(mnumber).setValue(helper);
+        DatabaseReference userRef = DB.getReference().child("LORA").child(mnumber);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    // Mobile number already registered
+                    m_number.setError("Mobile number already registered");
+                } else {
+                    // Mobile number is unique, proceed with registration
+                    Helper helper = new Helper(fname, lname, mnumber, delivery, pass);
+                    reference.child(mnumber).setValue(helper);
 
-        countryCodePicker.registerCarrierNumberEditText(m_number);
-        submit.setOnClickListener((v)->{
-            if(!countryCodePicker.isValidFullNumber()){
-                m_number.setError("Phone number not valid");
-                return;
+                    // Assuming the next part of your code is for OTP verification
+                    countryCodePicker.registerCarrierNumberEditText(m_number);
+                    if (!countryCodePicker.isValidFullNumber()) {
+                        m_number.setError("Phone number not valid");
+                        return;
+                    }
+
+                    Intent intent = new Intent(Sign_up.this, Verify_otp.class);
+                    intent.putExtra("m_number", countryCodePicker.getFullNumberWithPlus());
+                    startActivity(intent);
+                }
+
+
             }
-            Intent intent = new Intent(Sign_up.this,Verify_otp.class);
-            intent.putExtra("m_number",countryCodePicker.getFullNumberWithPlus());
-            startActivity(intent);
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
         });
-
-
     }
 }

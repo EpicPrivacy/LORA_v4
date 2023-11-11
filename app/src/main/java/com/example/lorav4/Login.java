@@ -23,6 +23,7 @@ public class Login extends AppCompatActivity {
 
     EditText reg_number,password2;
     Button btn_login2,btn_forgot;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,6 +36,14 @@ public class Login extends AppCompatActivity {
         password2 = findViewById(R.id.password2);
 
 
+        btn_forgot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                startActivity(new Intent(Login.this, Forgot_password.class));
+
+            }
+        });
 
         btn_login2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,15 +53,7 @@ public class Login extends AppCompatActivity {
 
             }
         });
-        btn_forgot.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
 
-                startActivity(new Intent(Login.this, Forgot_password.class));
-                finish();
-
-            }
-        });
     }
 
     private boolean ValidateRegNumber(){
@@ -90,6 +91,7 @@ public class Login extends AppCompatActivity {
             return true;
         }
     }
+
 
     public void LoginUser(){
 
@@ -136,6 +138,7 @@ public class Login extends AppCompatActivity {
                         intent.putExtra("password",PasswordFromDB);
 
                         startActivity(intent);
+
 
 
 
