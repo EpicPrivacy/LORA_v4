@@ -55,6 +55,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="Resend OTP in 30s"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:onClick="onResendClick"/>
 
 </LinearLayout>
