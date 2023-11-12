@@ -1,5 +1,6 @@
 package com.example.lorav4;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -70,6 +71,8 @@ public class Change_password extends AppCompatActivity {
                             // Update the password in the database
                             DatabaseReference userRef = reference.child(m_number).child("password");
                             userRef.setValue(newPassword);
+
+                            startActivity(new Intent(Change_password.this, Dashboard.class));
                         } else {
                             // New passwords do not match
                             Toast.makeText(Change_password.this, "New passwords do not match", Toast.LENGTH_SHORT).show();

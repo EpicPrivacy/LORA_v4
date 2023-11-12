@@ -68,4 +68,9 @@ public class Dashboard extends AppCompatActivity {
             }
         });
     }
+    @Override
+    public void onBackPressed() {
+        // Do nothing (disable the back button)
+        super.onBackPressed();
+    }
 }

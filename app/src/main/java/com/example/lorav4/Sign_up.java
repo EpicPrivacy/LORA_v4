@@ -171,7 +171,7 @@ public class Sign_up extends AppCompatActivity {
     }
     private boolean validateMNumber(){
         String val = m_number.getEditableText().toString();
-        String NumberMatch = "^[+]?[0-9]{11}$";
+        String NumberMatch = "^[+]?[0-9]{10}$";
 
         if(val.matches("m_number")){
 
@@ -179,7 +179,7 @@ public class Sign_up extends AppCompatActivity {
         if(val.isEmpty()){
            m_number.setError("Field cannot be empty");
             return false;
-        } else if (val.length()!=11) {
+        } else if (val.length()!=10) {
             m_number.setError("Mobile number not valid");
             return false;
         }else if (!val.matches(NumberMatch)) {
@@ -208,13 +208,13 @@ public class Sign_up extends AppCompatActivity {
 
     private boolean validatePassword(){
         String val = password.getEditableText().toString();
-        String PasswordVal = "(?=\\S+$)"+".{6,}";
+        String PasswordVal = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
 
         if(val.isEmpty()){
             password.setError("Field cannot be empty");
             return false;
         }else if (!val.matches(PasswordVal)) {
-            password.setError("Password is too weak");
+            password.setError("Password require at least 8 characters with at least one uppercase letter, one lowercase letter, one digit, and one special character");
             return false;
         }
         else {

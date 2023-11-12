@@ -2,6 +2,7 @@ package com.example.lorav4;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -38,6 +39,7 @@ public class Login extends AppCompatActivity {
             public void onClick(View view) {
 
                 startActivity(new Intent(Login.this, Forgot_password.class));
+                Log.d("Forgot_password", "Button clicked");
 
             }
         });
@@ -55,12 +57,12 @@ public class Login extends AppCompatActivity {
 
     private boolean ValidateRegNumber(){
         String val = reg_number.getEditableText().toString();
-        String NumberMatch = "^[+]?[0-9]{11}$";
+        String NumberMatch = "^[+]?[0-9]{10}$";
 
         if(val.isEmpty()){
             reg_number.setError("Field cannot be empty");
             return false;
-        } else if (val.length()!=11) {
+        } else if (val.length()!=10) {
             reg_number.setError("Mobile number not valid");
             return false;
         }else if (!val.matches(NumberMatch)) {
@@ -74,13 +76,13 @@ public class Login extends AppCompatActivity {
     }
     private boolean ValidatePassword(){
         String val = password2.getEditableText().toString();
-        String PasswordVal = "(?=\\S+$)"+".{6,}";
+        String PasswordVal = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
 
         if(val.isEmpty()){
             password2.setError("Field cannot be empty");
             return false;
         }else if (!val.matches(PasswordVal)) {
-            password2.setError("Password is too weak");
+            password2.setError("Password require at least 8 characters with at least one uppercase letter, one lowercase letter, one digit, and one special character");
             return false;
         }
         else {
@@ -136,7 +138,7 @@ public class Login extends AppCompatActivity {
 
                         startActivity(intent);
 
-
+                        finish();
 
 
                     }else {
