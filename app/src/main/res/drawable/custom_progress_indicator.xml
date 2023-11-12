@@ -1,0 +1,23 @@
+<!-- custom_progress_indicator.xml -->
+<rotate xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromDegrees="0"
+    android:toDegrees="1080">
+
+    <shape
+        android:innerRadiusRatio="3"
+        android:shape="ring"
+        android:thicknessRatio="6"
+        android:useLevel="false">
+
+        <size
+            android:height="48dip"
+            android:width="48dip" />
+
+        <gradient
+            android:centerColor="@android:color/holo_red_dark"
+            android:endColor="@android:color/transparent"
+            android:startColor="@android:color/holo_red_dark"
+            android:type="sweep" />
+
+    </shape>
+</rotate>

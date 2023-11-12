@@ -36,6 +36,7 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.TravelMode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -112,6 +113,12 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
                 return false;
             }
         });
+
+        // Add the onClose listener to prevent the app from closing when the close button is clicked
+        searchView.setOnCloseListener(() -> {
+            // Do nothing or handle the close event as needed
+            return false;
+        });
     }
 
     private void performSearch(String query) {
@@ -137,6 +144,7 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
                     Log.e("Search", "Error getting autocomplete predictions: " + exception.getMessage());
                 });
     }
+
     private void fetchPlaceDetails(String placeId) {
         // Specify the fields to be returned
         List<Place.Field> placeFields = Arrays.asList(Place.Field.LAT_LNG, Place.Field.NAME);
@@ -150,38 +158,102 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
                     Place place = response.getPlace();
                     LatLng newDestinationLatLng = place.getLatLng();
 
+                    // Add a marker for the searched location
+                    addMarkerForSearchedLocation(newDestinationLatLng);
+
                     // Update the destinationLatLng
                     destinationLatLng = newDestinationLatLng;
 
                     // Now you can use destinationLatLng for further processing
                     updateMapWithDestination(newDestinationLatLng);
-                    calculateAndDisplayRoute(newDestinationLatLng);
+
+                    // Add the destination to the waypoints list and calculate the route
+                    List<LatLng> waypoints = new ArrayList<>();
+                    waypoints.add(newDestinationLatLng);
+                    calculateAndDisplayRoute(waypoints);
                 })
                 .addOnFailureListener((exception) -> {
                     Log.e("FetchPlace", "Error fetching place details: " + exception.getMessage());
                 });
     }
-    private void calculateAndDisplayRoute(LatLng destinationLatLng) {
-        // Use Directions API to calculate and display the route
-        DirectionsApiRequest request = DirectionsApi.getDirections(geoApiContext,
-                        lastLocation.getLatitude() + "," + lastLocation.getLongitude(),
-                        destinationLatLng.latitude + "," + destinationLatLng.longitude)
-                .mode(TravelMode.DRIVING);
 
-        try {
-            DirectionsResult result = request.await();
-            if (result != null && result.routes != null && result.routes.length > 0) {
-                PolylineOptions polylineOptions = new PolylineOptions();
-                for (com.google.maps.model.LatLng point : result.routes[0].overviewPolyline.decodePath()) {
-                    polylineOptions.add(new LatLng(point.lat, point.lng));
-
-                }
-                map.addPolyline(polylineOptions);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    private void addMarkerForSearchedLocation(LatLng location) {
+        if (map != null) {
+            // Add a marker for the searched location
+            map.addMarker(new MarkerOptions().position(location).title("Searched Location"));
         }
     }
+
+
+    private void calculateAndDisplayRoute(List<LatLng> waypoints) {
+        if (waypoints.isEmpty()) {
+            return; // No waypoints to visit
+        }
+
+        LatLng currentLocation = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+
+        PolylineOptions polylineOptions = new PolylineOptions();
+        LatLng nearestWaypoint = findNearestWaypoint(currentLocation, waypoints);
+
+        while (nearestWaypoint != null) {
+            DirectionsApiRequest request = DirectionsApi.getDirections(
+                    geoApiContext,
+                    currentLocation.latitude + "," + currentLocation.longitude,
+                    nearestWaypoint.latitude + "," + nearestWaypoint.longitude
+            ).mode(TravelMode.DRIVING);
+
+            try {
+                DirectionsResult result = request.await();
+                if (result != null && result.routes != null && result.routes.length > 0) {
+                    for (com.google.maps.model.LatLng point : result.routes[0].overviewPolyline.decodePath()) {
+                        polylineOptions.add(new LatLng(point.lat, point.lng));
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Update current location to the last visited waypoint
+            currentLocation = nearestWaypoint;
+            waypoints.remove(nearestWaypoint);
+
+            // Find the next nearest waypoint
+            nearestWaypoint = findNearestWaypoint(currentLocation, waypoints);
+        }
+
+        map.addPolyline(polylineOptions);
+    }
+
+    private LatLng findNearestWaypoint(LatLng currentLocation, List<LatLng> waypoints) {
+        LatLng nearestWaypoint = null;
+        double minDistance = Double.MAX_VALUE;
+
+        for (LatLng waypoint : waypoints) {
+            double distance = calculateDistance(currentLocation, waypoint);
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestWaypoint = waypoint;
+            }
+        }
+
+        return nearestWaypoint;
+    }
+
+    private double calculateDistance(LatLng point1, LatLng point2) {
+        // Implement a method to calculate the distance between two LatLng points
+        // You can use Haversine formula or the Android Location API's distanceTo method
+        // Here's a simple example using the Android Location API:
+        Location location1 = new Location("");
+        location1.setLatitude(point1.latitude);
+        location1.setLongitude(point1.longitude);
+
+        Location location2 = new Location("");
+        location2.setLatitude(point2.latitude);
+        location2.setLongitude(point2.longitude);
+
+        return location1.distanceTo(location2);
+    }
+
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
 
@@ -280,7 +352,9 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
             map.clear();
 
             // Add the destination marker
-            map.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
+            if (destinationLatLng != null) {
+                map.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
+            }
 
             // Add the current location marker
             map.addMarker(new MarkerOptions().position(currentLatLng).title("Current Location"));
@@ -313,7 +387,7 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
             map.clear();
             map.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
             map.addMarker(new MarkerOptions().position(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude())).title("Current Location"));
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(destinationLatLng, 16.0f));
+            // Don't move the camera here
             isCameraMoving = false;
         }
     }
