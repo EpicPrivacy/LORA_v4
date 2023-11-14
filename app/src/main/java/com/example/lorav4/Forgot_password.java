@@ -2,165 +2,173 @@ package com.example.lorav4;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.lorav4.utils.AndroidUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseException;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.PhoneAuthCredential;
-import com.google.firebase.auth.PhoneAuthOptions;
-import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.hbb20.CountryCodePicker;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 public class Forgot_password extends AppCompatActivity {
 
-    String m_number;
+    EditText mobile_otp, resend_txtview;
+    CountryCodePicker login_countryCode;
     Long timeoutSeconds = 60L;
-    String verificationCode;
-    PhoneAuthProvider.ForceResendingToken  resendingToken;
 
-    EditText mobile_otp;
-    Button btn_send;
     ProgressBar progressBar2;
-    TextView resend_txtview;
-    FirebaseAuth mAuth = FirebaseAuth.getInstance();
+
+    Button btn_send;
+
+    FirebaseDatabase DB;
+    DatabaseReference reference;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
 
         mobile_otp = findViewById(R.id.mobile_otp);
+        login_countryCode = findViewById(R.id.login_countryCode);
+
+        DB = FirebaseDatabase.getInstance();
+        reference = DB.getReference().child("LORA");
+
+
         btn_send = findViewById(R.id.btn_send);
-        progressBar2 = findViewById(R.id.progressBar2);
-        resend_txtview = findViewById(R.id.resend_txtview);
-
-        // Check if intent has extras and m_number is not null
-        if (getIntent().getExtras() != null && getIntent().getExtras().containsKey("m_number")) {
-            m_number = getIntent().getExtras().getString("m_number");
-            if (m_number == null || m_number.isEmpty()) {
-                // Handle the case where m_number is null or empty
-                // You may want to show an error message and finish the activity
-                finish();
-                return;
+        btn_send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                register();
             }
-        } else {
-            // Handle the case where intent extras or "m_number" key is missing
-            finish();
-            return;
-        }
-
-        sendOtp(m_number, false);
-
-        runOnUiThread(() -> {
-            btn_send.setOnClickListener(v -> {
-                String enteredOtp = mobile_otp.getText().toString();
-                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationCode, enteredOtp);
-                signIn(credential);
-            });
         });
-
-        resend_txtview.setOnClickListener((v) -> {
-            sendOtp(m_number, true);
-        });
-
     }
 
-    void sendOtp(String phoneNumber,boolean isResend){
+    private boolean validateMNumber() {
+        String val = mobile_otp.getEditableText().toString().trim();
+        String NumberMatch = "^[+]?[0-9]{10}$";
+
+        if (val.isEmpty()) {
+            mobile_otp.setError("Field cannot be empty");
+            return false;
+        } else if (val.length() != 10) {
+            mobile_otp.setError("Mobile number not valid");
+            return false;
+        } else if (!val.matches(NumberMatch)) {
+            mobile_otp.setError("Philippine number only");
+            return false;
+        } else {
+            mobile_otp.setError(null);
+            return true;
+        }
+    }
+
+    public void register() {
         startResendTimer();
         setInProgress(true);
 
-        PhoneAuthOptions.Builder builder =
-                PhoneAuthOptions.newBuilder(mAuth)
-                        .setPhoneNumber(phoneNumber)
-                        .setTimeout(timeoutSeconds, TimeUnit.SECONDS)
-                        .setActivity(this)
-                        .setCallbacks(new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-                            @Override
-                            public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
-                                signIn(phoneAuthCredential);
-                            }
-
-                            @Override
-                            public void onVerificationFailed(@NonNull FirebaseException e) {
-                                AndroidUtil.showtoast(getApplicationContext(), "OTP verification failed");
-                                setInProgress(false); // Move the setInProgress(false) here
-                            }
-
-                            @Override
-                            public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
-                                super.onCodeSent(s, forceResendingToken);
-                                verificationCode = s;
-                                resendingToken = forceResendingToken;
-                                AndroidUtil.showtoast(getApplicationContext(), "OTP sent successfully");
-                            }
-                        });
-
-        if (isResend) {
-            PhoneAuthProvider.verifyPhoneNumber(builder.setForceResendingToken(resendingToken).build());
-        } else {
-            PhoneAuthProvider.verifyPhoneNumber(builder.build());
+        if (!validateMNumber()) {
+            return;
         }
 
+        String mnumber = mobile_otp.getText().toString();
+
+        DatabaseReference userRef = reference.child(mnumber);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    // Mobile number already registered
+                    mobile_otp.setError("Mobile number not registered");
+                } else {
+                    // Mobile number is unique, proceed with registration
+                    Helper helper = new Helper(mnumber);
+                    reference.child(mnumber).setValue(helper)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+
+                                        login_countryCode.registerCarrierNumberEditText(mobile_otp);
+                                        if (!login_countryCode.isValidFullNumber()) {
+                                            mobile_otp.setError("Phone number not valid");
+                                            return;
+                                        }
+
+                                        // Start OTP verification
+                                        Intent intent = new Intent(Forgot_password.this, Verify_otp_forgot_password.class);
+                                        intent.putExtra("m_number", login_countryCode.getFullNumberWithPlus());
+                                        startActivity(intent);
+                                    } else {
+                                        Log.e("Registration", "Registration failed", task.getException());
+                                        // Registration failed
+                                        // Handle the error, if needed
+                                    }
+                                }
+                            });
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle the error
+            }
+        });
     }
 
-    void setInProgress(boolean inProgress){
-        if(inProgress){
+    void setInProgress(boolean inProgress) {
+        if (inProgress) {
             progressBar2.setVisibility(View.VISIBLE);
             btn_send.setVisibility(View.GONE);
-        }else{
+        } else {
             progressBar2.setVisibility(View.GONE);
             btn_send.setVisibility(View.VISIBLE);
         }
     }
 
-    void signIn(PhoneAuthCredential phoneAuthCredential){
-        //login and go to next activity
-        mAuth.signInWithCredential(phoneAuthCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                setInProgress(false); // Move setInProgress(false) here
-                if (task.isSuccessful()) {
-                    Intent intent = new Intent(Forgot_password.this, Verify_otp_forgot_password.class);
-                    intent.putExtra("m_number", m_number);
-                    startActivity(intent);
-                } else {
-                    AndroidUtil.showtoast(getApplicationContext(), "OTP verification failed");
-                }
-            }
-        });
-
-
-    }
-
-    void startResendTimer(){
+    void startResendTimer() {
         resend_txtview.setEnabled(false);
         Timer timer = new Timer();
+        Handler handler = new Handler(Looper.getMainLooper());
+
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 timeoutSeconds--;
-                resend_txtview.setText("Resend OTP in "+timeoutSeconds +" seconds");
-                if(timeoutSeconds<=0){
-                    timeoutSeconds =60L;
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        resend_txtview.setText("Resend OTP in " + timeoutSeconds + " seconds");
+                    }
+                });
+
+                if (timeoutSeconds <= 0) {
+                    timeoutSeconds = 60L;
                     timer.cancel();
-                    runOnUiThread(() -> {
-                        resend_txtview.setEnabled(true);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            resend_txtview.setEnabled(true);
+                        }
                     });
                 }
             }
-        },0,1000);
+        }, 0, 1000);
     }
 }

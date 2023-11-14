@@ -2,7 +2,6 @@ package com.example.lorav4;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -38,8 +37,7 @@ public class Login extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                startActivity(new Intent(Login.this, Forgot_password.class));
-                Log.d("Forgot_password", "Button clicked");
+                forgot();
 
             }
         });
@@ -56,7 +54,7 @@ public class Login extends AppCompatActivity {
     }
 
     private boolean ValidateRegNumber(){
-        String val = reg_number.getEditableText().toString();
+        String val = reg_number.getText().toString();
         String NumberMatch = "^[+]?[0-9]{10}$";
 
         if(val.isEmpty()){
@@ -91,6 +89,11 @@ public class Login extends AppCompatActivity {
         }
     }
 
+    public void forgot(){
+
+        Intent intent = new Intent(Login.this, Forgot_password.class);
+        startActivity(intent);
+    }
 
     public void LoginUser(){
 

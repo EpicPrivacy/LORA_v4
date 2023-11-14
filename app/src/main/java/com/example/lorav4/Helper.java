@@ -16,6 +16,9 @@ public class Helper {
         this.password = password;
     }
 
+    public Helper(String mnumber) {
+    }
+
     public String getFirst_name() {
         return first_name;
     }

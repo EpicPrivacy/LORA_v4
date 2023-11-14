@@ -1,7 +1,11 @@
 package com.example.lorav4;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -9,10 +13,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -22,23 +26,14 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.TypeFilter;
-import com.google.android.libraries.places.api.net.FetchPlaceRequest;
-import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
 import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.maps.DirectionsApi;
-import com.google.maps.DirectionsApiRequest;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.maps.GeoApiContext;
-import com.google.maps.model.DirectionsResult;
-import com.google.maps.model.TravelMode;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 
 public class Update_location extends AppCompatActivity implements OnMapReadyCallback {
@@ -53,6 +48,9 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
     private SearchView searchView;
     private PlacesClient placesClient;
     private GeoApiContext geoApiContext;
+
+
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
 
     @Override
@@ -103,7 +101,7 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
             @Override
             public boolean onQueryTextSubmit(String query) {
                 // Perform the search when the user submits the query
-                performSearch(query);
+                setupSearchBar();
                 return true;
             }
 
@@ -121,151 +119,40 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
-    private void performSearch(String query) {
-        List<Place.Field> placeFields = Arrays.asList(Place.Field.LAT_LNG, Place.Field.NAME);
-        FindAutocompletePredictionsRequest request = FindAutocompletePredictionsRequest.builder()
-                .setTypeFilter(TypeFilter.ADDRESS)
-                .setQuery(query)
-                .build();
-
-        placesClient.findAutocompletePredictions(request)
-                .addOnSuccessListener((response) -> {
-                    if (!response.getAutocompletePredictions().isEmpty()) {
-                        AutocompletePrediction autocompletePrediction = response.getAutocompletePredictions().get(0);
-                        String placeId = autocompletePrediction.getPlaceId();
-
-                        // Fetch place details using the place ID
-                        fetchPlaceDetails(placeId);
-                    } else {
-                        Log.e("Search", "No predictions found");
-                    }
-                })
-                .addOnFailureListener((exception) -> {
-                    Log.e("Search", "Error getting autocomplete predictions: " + exception.getMessage());
-                });
-    }
-
-    private void fetchPlaceDetails(String placeId) {
-        // Specify the fields to be returned
-        List<Place.Field> placeFields = Arrays.asList(Place.Field.LAT_LNG, Place.Field.NAME);
-
-        // Create a FetchPlaceRequest
-        FetchPlaceRequest request = FetchPlaceRequest.builder(placeId, placeFields).build();
-
-        // Use PlacesClient to fetch place details
-        placesClient.fetchPlace(request)
-                .addOnSuccessListener((response) -> {
-                    Place place = response.getPlace();
-                    LatLng newDestinationLatLng = place.getLatLng();
-
-                    // Add a marker for the searched location
-                    addMarkerForSearchedLocation(newDestinationLatLng);
-
-                    // Update the destinationLatLng
-                    destinationLatLng = newDestinationLatLng;
-
-                    // Now you can use destinationLatLng for further processing
-                    updateMapWithDestination(newDestinationLatLng);
-
-                    // Add the destination to the waypoints list and calculate the route
-                    List<LatLng> waypoints = new ArrayList<>();
-                    waypoints.add(newDestinationLatLng);
-                    calculateAndDisplayRoute(waypoints);
-                })
-                .addOnFailureListener((exception) -> {
-                    Log.e("FetchPlace", "Error fetching place details: " + exception.getMessage());
-                });
-    }
-
-    private void addMarkerForSearchedLocation(LatLng location) {
-        if (map != null) {
-            // Add a marker for the searched location
-            map.addMarker(new MarkerOptions().position(location).title("Searched Location"));
-        }
-    }
-
-
-    private void calculateAndDisplayRoute(List<LatLng> waypoints) {
-        if (waypoints.isEmpty()) {
-            return; // No waypoints to visit
-        }
-
-        LatLng currentLocation = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-
-        PolylineOptions polylineOptions = new PolylineOptions();
-        LatLng nearestWaypoint = findNearestWaypoint(currentLocation, waypoints);
-
-        while (nearestWaypoint != null) {
-            DirectionsApiRequest request = DirectionsApi.getDirections(
-                    geoApiContext,
-                    currentLocation.latitude + "," + currentLocation.longitude,
-                    nearestWaypoint.latitude + "," + nearestWaypoint.longitude
-            ).mode(TravelMode.DRIVING);
-
-            try {
-                DirectionsResult result = request.await();
-                if (result != null && result.routes != null && result.routes.length > 0) {
-                    for (com.google.maps.model.LatLng point : result.routes[0].overviewPolyline.decodePath()) {
-                        polylineOptions.add(new LatLng(point.lat, point.lng));
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // Update current location to the last visited waypoint
-            currentLocation = nearestWaypoint;
-            waypoints.remove(nearestWaypoint);
-
-            // Find the next nearest waypoint
-            nearestWaypoint = findNearestWaypoint(currentLocation, waypoints);
-        }
-
-        map.addPolyline(polylineOptions);
-    }
-
-    private LatLng findNearestWaypoint(LatLng currentLocation, List<LatLng> waypoints) {
-        LatLng nearestWaypoint = null;
-        double minDistance = Double.MAX_VALUE;
-
-        for (LatLng waypoint : waypoints) {
-            double distance = calculateDistance(currentLocation, waypoint);
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearestWaypoint = waypoint;
-            }
-        }
-
-        return nearestWaypoint;
-    }
-
-    private double calculateDistance(LatLng point1, LatLng point2) {
-        // Implement a method to calculate the distance between two LatLng points
-        // You can use Haversine formula or the Android Location API's distanceTo method
-        // Here's a simple example using the Android Location API:
-        Location location1 = new Location("");
-        location1.setLatitude(point1.latitude);
-        location1.setLongitude(point1.longitude);
-
-        Location location2 = new Location("");
-        location2.setLatitude(point2.latitude);
-        location2.setLongitude(point2.longitude);
-
-        return location1.distanceTo(location2);
-    }
-
-
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
-
-// ...
-
     private void requestLocationPermission() {
-        ActivityCompat.requestPermissions(
-                this,
-                new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                LOCATION_PERMISSION_REQUEST_CODE
-        );
     }
+
+    private void setupSearchBar() {
+        // Initialize AutocompleteSupportFragment
+        AutocompleteSupportFragment autocompleteFragment =
+                (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
+
+        // Specify the types of place data to return
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+
+        // Set up place selection listener
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                // Place has been selected. Add a marker to the map.
+                LatLng selectedPlaceLatLng = place.getLatLng();
+
+                // Update the destinationLatLng
+                destinationLatLng = selectedPlaceLatLng;
+
+                map.addMarker(new MarkerOptions().position(selectedPlaceLatLng).title(place.getName()));
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(selectedPlaceLatLng, 12));
+            }
+
+            @Override
+            public void onError(@NonNull com.google.android.gms.common.api.Status status) {
+                // Handle the error
+                Log.e("PlaceSelection", "Error: " + status);
+            }
+        });
+    }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -273,7 +160,17 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted, proceed with location updates
-                requestLocationUpdates();
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+                map.setMyLocationEnabled(true);
             } else {
                 // Permission denied, handle accordingly (e.g., show a message, disable functionality)
             }
@@ -282,11 +179,28 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
 
 
     private void requestLocationUpdates() {
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(5000); // 5 seconds
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
 
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION_REQUEST_CODE);
+        }
+    }
+
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        map = googleMap;
+
+        // Add a marker to the default location
+        LatLng defaultLocation = new LatLng(14.181065806839685, 121.22518595716619); // Replace with your default location
+        map.addMarker(new MarkerOptions().position(defaultLocation).title("Default Marker"));
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 12));
+
+        // Enable My Location button and track user's location
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -296,55 +210,38 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
+        map.setMyLocationEnabled(true);
+
+        // Request location updates
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
+                @Override
+                public void onLocationChanged(@NonNull Location location) {
+                    double currentLatitude = location.getLatitude();
+                    double currentLongitude = location.getLongitude();
+
+                    // Use the current location coordinates as needed
+                    LatLng currentLocation = new LatLng(currentLatitude, currentLongitude);
+
+                    // You can now use the 'currentLocation' LatLng object for your purposes
+                }
+
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+                }
+
+                @Override
+                public void onProviderEnabled(String provider) {
+                }
+
+                @Override
+                public void onProviderDisabled(String provider) {
+                }
+            });
+        }
     }
 
-
-    @Override
-    public void onMapReady(@NonNull GoogleMap googleMap) {
-        map = googleMap;
-        float zoomLevel = 16.0f;
-        // 14.180989, 121.225210
-        destinationLatLng = new LatLng(14.181092519228185, 121.22517763491443);
-
-        // Add the destination marker
-        map.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
-
-        // Move the camera to the destination only if the current location is not available
-        if (lastLocation == null) {
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(destinationLatLng, zoomLevel));
-        }
-
-        // Set a listener for map drag events
-        map.setOnCameraMoveListener(() -> {
-            // Check if the camera has been moved manually by the user
-            if (!isCameraMoving) {
-                isCameraMoving = true;
-            }
-        });
-
-        // Check if map is not null before using it
-        if (map != null) {
-            requestLastLocation();
-        }
-    }
-
-
-
-    private void requestLastLocation() {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Handle the case where permissions are not granted
-            return;
-        }
-        fusedLocationProviderClient.getLastLocation()
-                .addOnSuccessListener(this, location -> {
-                    if (location != null) {
-                        // Update the map with the last known location
-                        lastLocation = location;
-                        updateMapWithCurrentLocation(new LatLng(location.getLatitude(), location.getLongitude()));
-                    }
-                });
-    }
 
     private void updateMapWithCurrentLocation(LatLng currentLatLng) {
         if (map != null) {
@@ -378,16 +275,6 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
             }
 
             // Reset the flag after moving the camera
-            isCameraMoving = false;
-        }
-    }
-    private void updateMapWithDestination(LatLng destinationLatLng) {
-        // Update the map with the destination marker
-        if (map != null) {
-            map.clear();
-            map.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
-            map.addMarker(new MarkerOptions().position(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude())).title("Current Location"));
-            // Don't move the camera here
             isCameraMoving = false;
         }
     }
