@@ -42,12 +42,21 @@
         android:id="@+id/Clear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="32dp"
         android:text="Clear Route"
         app:layout_constraintBottom_toBottomOf="@+id/maps"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ToggleButton
+        android:id="@+id/toggleSatellite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Satellite"
+        android:checked="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="3dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

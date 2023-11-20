@@ -1,17 +1,15 @@
 package com.example.lorav4;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,7 +32,10 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.StreetViewPanoramaFragment;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -49,7 +50,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Locale;
 
 // Import statements...
 
@@ -65,6 +66,11 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
 
     private Button Clear;
 
+    private ToggleButton toggleSatellite;
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +79,10 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
         searchView = findViewById(R.id.searchView);
 
         Clear = findViewById(R.id.Clear);
+
+
+        toggleSatellite = findViewById(R.id.toggleSatellite);
+        toggleSatellite.setChecked(false);
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
         mapFragment.getMapAsync(this);
@@ -85,11 +95,22 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
             }
         });
 
+        toggleSatellite.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // Set map type to satellite
+                map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+            } else {
+                // Set map type to normal (you can change this to your default map type)
+                map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            }
+        });
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 String locationQuery = searchView.getQuery().toString();
                 List<Address> addressList = null;
+
 
                 if (locationQuery != null) {
                     Geocoder geocoder = new Geocoder(Update_location.this);
@@ -121,6 +142,7 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
                                             waypoints.add(currentLocation);
                                             waypoints.add(latLng);
                                             applyGreedyAlgorithm();
+
                                         }
                                     });
                         }
@@ -190,6 +212,7 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
         return Math.sqrt(Math.pow(point1.latitude - point2.latitude, 2) +
                 Math.pow(point1.longitude - point2.longitude, 2));
     }
+
     private void drawRoute(LatLng currentLocation, LatLng destination) {
         // Clear existing polylines on the map
         clearPolylines();
@@ -200,6 +223,12 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
                 .width(5)
                 .color(Color.RED);
         currentPolyline = map.addPolyline(line);
+
+        // Calculate distance and add a marker with the distance
+        double distance = Double.parseDouble(calculateDistance(currentLocation, destination));
+        String formattedDistance = String.format(Locale.getDefault(), "%.2f km", distance);
+        map.addMarker(new MarkerOptions().position(destination).title("Destination").snippet(formattedDistance));
+
     }
 
     private void getDirections(LatLng origin, LatLng destination) {
@@ -310,35 +339,53 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    private String calculateDistance(LatLng start, LatLng end) {
+        float[] results = new float[1];
+        Location.distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude, results);
+
+        // Convert meters to kilometers and format to two decimal places
+        double distanceInMeters = results[0];
+        double distanceInKm = distanceInMeters / 1000.0;
+        return String.format(Locale.getDefault(), "%.2f", distanceInKm);
+    }
+
+
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         map = googleMap;
         requestLocationPermission();
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
-                @Override
-                public void onLocationChanged(@NonNull Location location) {
-                    double currentLatitude = location.getLatitude();
-                    double currentLongitude = location.getLongitude();
-                    LatLng currentLocation = new LatLng(currentLatitude, currentLongitude);
-                    // Use the 'currentLocation' LatLng object as needed
-                }
 
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-                }
 
-                @Override
-                public void onProviderEnabled(String provider) {
-                }
-
-                @Override
-                public void onProviderDisabled(String provider) {
-                }
-            });
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
         }
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        double currentLatitude = location.getLatitude();
+                        double currentLongitude = location.getLongitude();
+                        LatLng currentLocation = new LatLng(currentLatitude, currentLongitude);
+
+                        // Clear existing circles and markers on the map
+                        map.clear();
+
+                        // Add a new circle for the current location with a larger radius
+                        CircleOptions circleOptions = new CircleOptions()
+                                .center(currentLocation)
+                                .radius(50)  // Adjust the radius as needed (in meters)
+                                .strokeColor(Color.rgb(26, 119, 186))
+                                .fillColor(Color.parseColor("#5084d3")); // Adjust the fill color and opacity as needed
+
+                        Circle currentLocationCircle = map.addCircle(circleOptions);
+
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+
+
+                    }
+                });
+
 
         map.getUiSettings().setCompassEnabled(true);
     }
+
 }
