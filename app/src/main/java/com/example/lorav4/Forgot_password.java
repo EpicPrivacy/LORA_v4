@@ -54,7 +54,7 @@ public class Forgot_password extends AppCompatActivity {
         btn_send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                register();
+                new Verify_otp_forgot_password();
             }
         });
     }
