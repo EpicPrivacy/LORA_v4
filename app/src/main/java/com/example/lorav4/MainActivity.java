@@ -1,12 +1,12 @@
 package com.example.lorav4;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, Login.class));
-                finish();
+
             }
         });
 
@@ -32,9 +32,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, Sign_up.class));
-                finish();
+
 
             }
         });
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // This method is called when the activity is no longer in the foreground.
+        // You might want to stop ongoing processes or resources here.
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // This method is called when the activity is being destroyed.
+        // Release resources, unregister listeners, or perform cleanup tasks here.
     }
 }

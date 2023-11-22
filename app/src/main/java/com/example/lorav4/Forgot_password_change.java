@@ -2,6 +2,8 @@ package com.example.lorav4;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,9 +24,10 @@ public class Forgot_password_change extends AppCompatActivity {
     EditText oldPasswordEditText, newPasswordEditText, confirmPasswordEditText;
     Button changePasswordButton;
 
-    FirebaseDatabase DB;
-    DatabaseReference userRef;
+    DatabaseReference reference;
     String m_number;
+
+    private static final String DATABASE_PATH = "LORA";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +35,49 @@ public class Forgot_password_change extends AppCompatActivity {
         setContentView(R.layout.activity_forgot_password_change);
 
         Intent intent = getIntent();
-        m_number = intent.getStringExtra("m_number"); // Use the correct key
+        m_number = intent.getStringExtra("m_number");
+
+        reference = FirebaseDatabase.getInstance().getReference().child(DATABASE_PATH);
 
         oldPasswordEditText = findViewById(R.id.old_password);
         newPasswordEditText = findViewById(R.id.new_password);
         confirmPasswordEditText = findViewById(R.id.confirm_password);
         changePasswordButton = findViewById(R.id.change_password_button);
+
+        // Add a TextWatcher to check if new passwords match in real-time
+        newPasswordEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+                // Not needed
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                checkPasswordMatch();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                // Not needed
+            }
+        });
+
+        confirmPasswordEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+                // Not needed
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                checkPasswordMatch();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                // Not needed
+            }
+        });
 
         changePasswordButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -47,21 +87,32 @@ public class Forgot_password_change extends AppCompatActivity {
         });
     }
 
+    private void checkPasswordMatch() {
+        String newPassword = newPasswordEditText.getText().toString().trim();
+        String confirmPassword = confirmPasswordEditText.getText().toString().trim();
+
+        if (!newPassword.equals(confirmPassword)) {
+            confirmPasswordEditText.setError("Passwords do not match");
+        } else {
+            confirmPasswordEditText.setError(null);
+        }
+    }
+
     private void changePassword() {
         String password = oldPasswordEditText.getEditableText().toString().trim();
         String newPassword = newPasswordEditText.getEditableText().toString().trim();
         String confirmPassword = confirmPasswordEditText.getEditableText().toString().trim();
 
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("LORA");
         Query checkUser = reference.orderByChild("m_number").equalTo(m_number);
 
         checkUser.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    String passwordFromDB = snapshot.child(m_number).child("password").getValue(String.class);
+                    DataSnapshot userSnapshot = snapshot.child(m_number);
+                    String passwordFromDB = userSnapshot.child("password").getValue(String.class);
 
-                    if (passwordFromDB.equals(password)) {
+                    if (passwordFromDB != null && passwordFromDB.equals(password)) {
                         // Old password is correct
                         Toast.makeText(Forgot_password_change.this, "Old password is correct", Toast.LENGTH_SHORT).show();
 
@@ -91,5 +142,19 @@ public class Forgot_password_change extends AppCompatActivity {
                 Toast.makeText(Forgot_password_change.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // This method is called when the activity is no longer in the foreground.
+        // You might want to stop ongoing processes or resources here.
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // This method is called when the activity is being destroyed.
+        // Release resources, unregister listeners, or perform cleanup tasks here.
     }
 }

@@ -32,7 +32,6 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.StreetViewPanoramaFragment;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -386,6 +385,19 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
 
 
         map.getUiSettings().setCompassEnabled(true);
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // This method is called when the activity is no longer in the foreground.
+        // You might want to stop ongoing processes or resources here.
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // This method is called when the activity is being destroyed.
+        // Release resources, unregister listeners, or perform cleanup tasks here.
     }
 
 }

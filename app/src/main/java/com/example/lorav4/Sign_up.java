@@ -278,4 +278,17 @@ public class Sign_up extends AppCompatActivity {
             }
         });
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // This method is called when the activity is no longer in the foreground.
+        // You might want to stop ongoing processes or resources here.
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // This method is called when the activity is being destroyed.
+        // Release resources, unregister listeners, or perform cleanup tasks here.
+    }
 }

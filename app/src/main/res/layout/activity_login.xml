@@ -11,6 +11,17 @@
     android:background="#face2f">
 
     <TextView
+        android:id="@+id/textView18"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/bungee"
+        android:gravity="center"
+        android:text="Login"
+        android:textColor="#EC0000"
+        android:textSize="40sp" />
+
+    <TextView
         android:id="@+id/textView5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -77,9 +88,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Forgot your password? "
-            android:textStyle="bold"
+            android:textSize="16sp"
 
-            />
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btn_forgot"
