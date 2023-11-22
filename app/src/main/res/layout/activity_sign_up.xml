@@ -28,13 +28,15 @@
     <EditText
         android:id="@+id/first_name"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_margin="9dp"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
+        android:background="@drawable/edit_text_background"
         android:ems="10"
         android:hint="First Name"
         android:inputType="text"
+        android:paddingStart="10dp"
         android:textColorHint="#333333"
         app:layout_constraintBottom_toTopOf="@+id/last_name"
         tools:layout_editor_absoluteX="24dp" />
@@ -42,7 +44,9 @@
     <EditText
         android:id="@+id/last_name"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
+        android:background="@drawable/edit_text_background"
+        android:paddingStart="10dp"
         android:layout_margin="9dp"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
@@ -62,7 +66,8 @@
         <com.hbb20.CountryCodePicker
             android:id="@+id/login_countrycode"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/edit_text_background"
             android:layout_marginLeft="15dp"
             app:ccp_showFlag="false"
             app:ccp_showNameCode="false" />
@@ -70,8 +75,10 @@
         <EditText
             android:id="@+id/m_number"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/edit_text_background"
             android:layout_margin="9dp"
+            android:paddingStart="10dp"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:ems="10"
@@ -102,10 +109,12 @@
     <EditText
         android:id="@+id/delivery_add"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
+        android:background="@drawable/edit_text_background"
         android:layout_margin="9dp"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
+        android:paddingStart="10dp"
         android:ems="10"
         android:hint="House No. / Barangay / City / Province"
         android:inputType="text"
@@ -141,8 +150,10 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/password"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/edit_text_background"
             android:ems="15"
+            android:paddingStart="10dp"
             android:inputType="textPassword" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -154,6 +165,7 @@
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:background="@drawable/button_background"
+
         android:textColor="#ffff"
         android:text="Terms And Conditons"
         android:textColorHighlight="#FFFFFF"
@@ -161,7 +173,8 @@
     <CheckBox
         android:id="@+id/agree_checkbox"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
+        android:background="@drawable/edit_text_background"
         android:layout_margin="10dp"
         android:text="I agree to the terms and conditions"
         android:textStyle="bold"/>
