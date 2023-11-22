@@ -2,9 +2,6 @@ package com.example.lorav4;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,7 +25,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-public class Verify_otp_forgot_password extends AppCompatActivity {
+public class Forgot_verify extends AppCompatActivity {
 
     String m_number;
     Long timeoutSeconds = 60L;
@@ -44,34 +41,22 @@ public class Verify_otp_forgot_password extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_verify_otp);
+        setContentView(R.layout.activity_forgot_verify);
 
-        otp_input = findViewById(R.id.otp_input);
-        btn_next = findViewById(R.id.btn_next);
-        progressBar = findViewById(R.id.progressBar);
-        btn_resend = findViewById(R.id.btn_resend);
+        otp_input = findViewById(R.id.forgot_otp_input);
+        btn_next = findViewById(R.id.forgot_btn_next);
+        progressBar = findViewById(R.id.forgot_progressBar);
+        btn_resend = findViewById(R.id.forgot_btn_resend);
 
-        m_number = getIntent().getStringExtra("m_number");
-        if (m_number == null) {
-            // Handle the case where m_number is null
-            Log.e("VerifyOtpActivity", "m_number is null");
-            finish();  // Finish the activity or take appropriate action
-            return;
-        }
+        m_number = getIntent().getExtras().getString("m_number");
 
         sendOtp(m_number,false);
 
         btn_next.setOnClickListener(v -> {
-            String enteredOtp = otp_input.getText().toString();
-
-            // Check if verificationCode is not null or empty before proceeding
-            if (verificationCode != null && !verificationCode.isEmpty()) {
-                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationCode, enteredOtp);
-                signIn(credential);
-            } else {
-                // Handle the case where verificationCode is null or empty
-                AndroidUtil.showtoast(getApplicationContext(), "Verification code is not available");
-            }
+            ValidateRegNumber();
+            String enteredOtp  = otp_input.getText().toString();
+            PhoneAuthCredential credential =  PhoneAuthProvider.getCredential(verificationCode,enteredOtp);
+            signIn(credential);
         });
 
         btn_resend.setOnClickListener((v)->{
@@ -79,11 +64,29 @@ public class Verify_otp_forgot_password extends AppCompatActivity {
         });
 
     }
+    private boolean ValidateRegNumber(){
+        String val = otp_input.getText().toString();
+        String NumberMatch = "^[+]?[0-9]{10}$";
 
-    void sendOtp(String phoneNumber, boolean isResend) {
+        if(val.isEmpty()){
+            otp_input.setError("Field cannot be empty");
+            return false;
+        } else if (val.length()!=10) {
+            otp_input.setError("Mobile number not valid");
+            return false;
+        }else if (!val.matches(NumberMatch)) {
+            otp_input.setError("Philippine number only");
+            return false;
+        }
+        else {
+            otp_input.setError(null);
+            return true;
+        }
+    }
+
+    void sendOtp(String phoneNumber,boolean isResend){
         startResendTimer();
         setInProgress(true);
-
         PhoneAuthOptions.Builder builder =
                 PhoneAuthOptions.newBuilder(mAuth)
                         .setPhoneNumber(phoneNumber)
@@ -98,7 +101,7 @@ public class Verify_otp_forgot_password extends AppCompatActivity {
 
                             @Override
                             public void onVerificationFailed(@NonNull FirebaseException e) {
-                                AndroidUtil.showtoast(getApplicationContext(), "OTP verification failed");
+                                AndroidUtil.showtoast(getApplicationContext(),"OTP verification failed");
                                 setInProgress(false);
                             }
 
@@ -107,21 +110,17 @@ public class Verify_otp_forgot_password extends AppCompatActivity {
                                 super.onCodeSent(s, forceResendingToken);
                                 verificationCode = s;
                                 resendingToken = forceResendingToken;
-                                AndroidUtil.showtoast(getApplicationContext(), "OTP sent successfully");
+                                AndroidUtil.showtoast(getApplicationContext(),"OTP sent successfully");
                                 setInProgress(false);
-
-                                Log.d("VerifyOtpActivity", "Entered OTP: " + otp_input.getText().toString());
-                                Log.d("VerifyOtpActivity", "Verification Code: " + verificationCode);
                             }
                         });
-
-        if (isResend) {
+        if(isResend){
             PhoneAuthProvider.verifyPhoneNumber(builder.setForceResendingToken(resendingToken).build());
-        } else {
+        }else{
             PhoneAuthProvider.verifyPhoneNumber(builder.build());
         }
-    }
 
+    }
 
     void setInProgress(boolean inProgress){
         if(inProgress){
@@ -135,18 +134,15 @@ public class Verify_otp_forgot_password extends AppCompatActivity {
 
     void signIn(PhoneAuthCredential phoneAuthCredential){
         //login and go to next activity
-        Log.d("VerifyOtpActivity", "Attempting to sign in...");
-
         setInProgress(true);
         mAuth.signInWithCredential(phoneAuthCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 setInProgress(false);
                 if(task.isSuccessful()){
-                    Intent intent = new Intent(Verify_otp_forgot_password.this,Forgot_password.class);
+                    Intent intent = new Intent(Forgot_verify.this,Change_password.class);
                     intent.putExtra("m_number",m_number);
                     startActivity(intent);
-                    finish();
                 }else{
                     AndroidUtil.showtoast(getApplicationContext(),"OTP verification failed");
                 }
@@ -159,31 +155,27 @@ public class Verify_otp_forgot_password extends AppCompatActivity {
     void startResendTimer() {
         btn_resend.setEnabled(false);
         Timer timer = new Timer();
-        Handler handler = new Handler(Looper.getMainLooper());
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 timeoutSeconds--;
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        btn_resend.setText("Resend OTP in " + timeoutSeconds + " seconds");
-                    }
+
+                runOnUiThread(() -> {
+                    btn_resend.setText("Resend OTP in " + timeoutSeconds + " seconds");
                 });
 
                 if (timeoutSeconds <= 0) {
                     timeoutSeconds = 60L;
                     timer.cancel();
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            btn_resend.setEnabled(true);
-                        }
+
+                    runOnUiThread(() -> {
+                        btn_resend.setEnabled(true);
                     });
                 }
             }
         }, 0, 1000);
     }
+
 
 }

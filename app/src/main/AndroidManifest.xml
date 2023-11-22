@@ -24,6 +24,12 @@
         android:theme="@style/Theme.LORAV4"
         tools:targetApi="31">
         <activity
+            android:name=".Verify_otp"
+            android:exported="false" />
+        <activity
+            android:name=".Forgot_verify"
+            android:exported="false" />
+        <activity
             android:name=".Loading_screen"
             android:exported="true">
             <intent-filter>
@@ -33,13 +39,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Verify_otp_forgot_password"
+            android:name=".Forgot_password_otp"
             android:exported="false" />
         <activity
             android:name=".Forgot_password"
-            android:exported="false" />
-        <activity
-            android:name=".Verify_otp"
             android:exported="false" />
         <activity
             android:name=".Change_password"
@@ -64,9 +67,7 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="false">
-
-        </activity>
+            android:exported="false"></activity>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

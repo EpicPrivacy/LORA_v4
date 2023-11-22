@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Verify_otp_forgot_password"
+    tools:context=".Forgot_verify"
     android:gravity="center"
     android:orientation="vertical"
     android:background="#face2f">
@@ -16,6 +16,7 @@
         android:fontFamily="@font/bungee"
         android:gravity="center"
         android:text="FORGOT PASSWORD"
+        android:textColor="#000000"
         android:textSize="24sp" />
 
     <ImageView
@@ -32,6 +33,7 @@
         android:fontFamily="@font/bungee"
         android:gravity="center"
         android:text="sent to your mobile number"
+        android:textColor="#000000"
         android:textSize="34sp" />
 
     <EditText
