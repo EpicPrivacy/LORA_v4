@@ -18,7 +18,7 @@ public class Loading_screen extends AppCompatActivity {
             @Override
             public void run() {
                 // Create an Intent to start the main activity
-                Intent intent = new Intent(Loading_screen.this, MainActivity.class);
+                Intent intent = new Intent(Loading_screen.this, Login.class);
                 startActivity(intent);
 
                 // Close this activity
