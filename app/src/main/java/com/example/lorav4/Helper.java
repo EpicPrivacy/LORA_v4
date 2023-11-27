@@ -1,54 +1,67 @@
 package com.example.lorav4;
 
 public class Helper {
+    private String userId;
+    private String firstName;
+    private String lastName;
+    private String mobileNumber;
+    private String deliveryAddress;
+    private String password;
 
-    String first_name,last_namse,m_number,delivery_add,password;
-
-    public Helper(String fname, String lname, String mnumber, String delivery, String deliver, String pass) {
-
+    // Empty constructor for Firebase
+    public Helper() {
     }
 
-    public Helper(String first_name, String last_namse, String m_number, String delivery_add, String password) {
-        this.first_name = first_name;
-        this.last_namse = last_namse;
-        this.m_number = m_number;
-        this.delivery_add = delivery_add;
+    // Constructor with parameters
+    public Helper(String userId, String firstName, String lastName, String mobileNumber, String deliveryAddress, String password) {
+        this.userId = userId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.mobileNumber = mobileNumber;
+        this.deliveryAddress = deliveryAddress;
         this.password = password;
     }
 
-    public Helper(String mnumber) {
+    // Getters and setters for all fields
+
+    public String getUserId() {
+        return userId;
     }
 
-    public String getFirst_name() {
-        return first_name;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public void setFirst_name(String first_name) {
-        this.first_name = first_name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public String getLast_namse() {
-        return last_namse;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
-    public void setLast_namse(String last_namse) {
-        this.last_namse = last_namse;
+    public String getLastName() {
+        return lastName;
     }
 
-    public String getM_number() {
-        return m_number;
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
-    public void setM_number(String m_number) {
-        this.m_number = m_number;
+    public String getMobileNumber() {
+        return mobileNumber;
     }
 
-    public String getDelivery_add() {
-        return delivery_add;
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
     }
 
-    public void setDelivery_add(String delivery_add) {
-        this.delivery_add = delivery_add;
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
     }
 
     public String getPassword() {

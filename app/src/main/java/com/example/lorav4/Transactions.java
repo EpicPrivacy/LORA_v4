@@ -1,5 +1,6 @@
 package com.example.lorav4;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,6 +34,10 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
     private EditText editTextFirstName, editTextLastName, editTextMobileNumber, editTextAddress;
     private Button btnAddUpdateToFirebase;
 
+    // Firebase authentication
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +45,10 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
 
         // Initialize Firebase Database
         databaseReference = FirebaseDatabase.getInstance().getReference("orders");
+
+        // Initialize Firebase Authentication
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
 
         // Initialize UI components
         editTextFirstName = findViewById(R.id.editTextFirstName);
@@ -51,7 +62,7 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         orderList = new ArrayList<>();
-        orderAdapter = new OrderAdapter(orderList, (OrderAdapter.OnItemClickListener) this);
+        orderAdapter = new OrderAdapter(orderList, this);
         recyclerView.setAdapter(orderAdapter);
 
         // Load data from Firebase
@@ -155,29 +166,35 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
     }
 
     private void loadDataFromFirebase() {
-        // Assuming your Order class has a constructor that matches the order data in Firebase
-        databaseReference.addValueEventListener(new ValueEventListener() {
+        // Check if currentUser is not null before accessing its properties
+        if (currentUser != null) {
+            databaseReference.orderByChild("userId").equalTo(currentUser.getUid())
+                    .addValueEventListener(new ValueEventListener() {
 
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                orderList.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Order order = dataSnapshot.getValue(Order.class);
-                    orderList.add(order);
-                }
-                orderAdapter.notifyDataSetChanged();
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            orderList.clear();
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                Order order = dataSnapshot.getValue(Order.class);
+                                orderList.add(order);
+                            }
+                            orderAdapter.notifyDataSetChanged();
 
-                Log.d("Firebase", "Data loaded successfully. Order count: " + orderList.size());
-            }
+                            Log.d("Firebase", "Data loaded successfully. Order count: " + orderList.size());
+                        }
 
-
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // Handle errors
-            }
-        });
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            // Handle errors
+                        }
+                    });
+        } else {
+            // Handle the case where currentUser is null (user not signed in)
+            // For example, you can show a message to the user or navigate to the sign-in activity
+            Log.e("Firebase", "User not signed in. Unable to load data from Firebase.");
+        }
     }
+
 
     private void addOrUpdateToFirebase() {
         // Get input values
@@ -224,7 +241,7 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
 
         // Push the new order to the "orders" node with the generated order number
         String orderId = databaseReference.push().getKey();
-        Order order = new Order(orderId, String.valueOf(orderNumber), firstName, lastName, mobileNumber, address);
+        Order order = new Order(orderId, currentUser.getUid(), String.valueOf(orderNumber), firstName, lastName, mobileNumber, address);
         databaseReference.child(orderId).setValue(order)
                 .addOnSuccessListener(aVoid -> {
                     // Data added successfully
@@ -268,4 +285,29 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
         // Handle item click, e.g., show a dialog for update/delete options
         showOptionsDialog(order);
     }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d("Firebase", "onStart called");
+
+        // Check if user is signed in (non-null) and update UI accordingly.
+        currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            // The user is signed in, perform any necessary operations
+            // (e.g., update UI, load data, etc.)
+            Log.d("Firebase", "User is signed in. UID: " + currentUser.getUid());
+            loadDataFromFirebase();
+        } else {
+            // If the user is not signed in, redirect to the login screen
+            Log.e("Firebase", "User is not signed in. Redirecting to login screen.");
+            startActivity(new Intent(Transactions.this, Login.class));
+            finish(); // Finish the current activity to prevent going back with the back button
+        }
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Remove Firebase listeners here
+    }
+
 }

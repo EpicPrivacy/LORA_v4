@@ -5,10 +5,17 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -20,6 +27,7 @@ public class Login extends AppCompatActivity {
 
     EditText reg_number,password2;
     Button btn_login2,btn_forgot,btn_newAccount;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +42,7 @@ public class Login extends AppCompatActivity {
         reg_number = findViewById(R.id.reg_number);
         password2 = findViewById(R.id.password2);
 
+        mAuth = FirebaseAuth.getInstance();
 
         btn_forgot.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,12 +74,12 @@ public class Login extends AppCompatActivity {
 
     private boolean ValidateRegNumber(){
         String val = reg_number.getText().toString();
-        String NumberMatch = "^[+]?[0-9]{10}$";
+        String NumberMatch = "^[+]?[0-9]{11}$";
 
         if(val.isEmpty()){
             reg_number.setError("Field cannot be empty");
             return false;
-        } else if (val.length()!=10) {
+        } else if (val.length()!=11) {
             reg_number.setError("Mobile number not valid");
             return false;
         }else if (!val.matches(NumberMatch)) {
@@ -111,9 +120,55 @@ public class Login extends AppCompatActivity {
 
         }else {
             isUser();
+            loginUserWithEmailAndPassword();
         }
     }
+    private void clearInputFields() {
+        reg_number.setText("");
+        password2.setText("");
+    }
 
+    private void loginUserWithEmailAndPassword() {
+        String email = reg_number.getText().toString().trim();
+        String password = password2.getEditableText().toString().trim();
+
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            updateUI(user);
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+
+                                Toast.makeText(Login.this, "Invalid email or password", Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Other authentication failures
+                                Toast.makeText(Login.this, "Authentication failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
+                            }
+
+                            // Clear fields
+                            clearInputFields();
+                        }
+                    }
+
+                });
+
+    }
+    private void updateUI(FirebaseUser user) {
+        if (user != null) {
+            // Navigate to the dashboard or perform other actions for successful login
+            Intent intent = new Intent(Login.this, Dashboard.class);
+            startActivity(intent);
+            finish();
+        } else {
+            // Clear fields and show an error message
+            clearInputFields();
+            Toast.makeText(Login.this, "Authentication failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
+        }
+    }
 
 
     private void isUser() {
@@ -121,7 +176,7 @@ public class Login extends AppCompatActivity {
         String PasswordEnter = password2.getEditableText().toString().trim();
 
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("LORA");
-        Query CheckUser = reference.orderByChild("m_number").equalTo(RegNumEnter);
+        Query CheckUser = reference.orderByChild("mobileNumber").equalTo(RegNumEnter);
 
         CheckUser.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -172,6 +227,7 @@ public class Login extends AppCompatActivity {
             }
         });
     }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -185,4 +241,10 @@ public class Login extends AppCompatActivity {
         // This method is called when the activity is being destroyed.
         // Release resources, unregister listeners, or perform cleanup tasks here.
     }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Remove Firebase listeners here
+    }
+
 }

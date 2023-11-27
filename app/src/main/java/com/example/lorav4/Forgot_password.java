@@ -55,12 +55,12 @@ public class Forgot_password extends AppCompatActivity {
 
     private boolean ValidateRegNumber(){
         String val = mobileEditText.getText().toString();
-        String NumberMatch = "^[+]?[0-9]{10}$";
+        String NumberMatch = "^[+]?[0-9]{11}$";
 
         if(val.isEmpty()){
             mobileEditText.setError("Field cannot be empty");
             return false;
-        } else if (val.length()!=10) {
+        } else if (val.length()!=11) {
             mobileEditText.setError("Mobile number not valid");
             return false;
         }else if (!val.matches(NumberMatch)) {

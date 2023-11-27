@@ -143,7 +143,7 @@ public class Verify_otp extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 setInProgress(false);
                 if(task.isSuccessful()){
-                    Intent intent = new Intent(Verify_otp.this,MainActivity.class);
+                    Intent intent = new Intent(Verify_otp.this,Login.class);
                     intent.putExtra("m_number",m_number);
                     startActivity(intent);
                     finish();

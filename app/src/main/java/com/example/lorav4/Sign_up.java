@@ -23,14 +23,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.hbb20.CountryCodePicker;
 
+import java.util.UUID;
+
 public class Sign_up extends AppCompatActivity {
 
     CountryCodePicker countryCodePicker;
-    EditText first_name,last_name,m_number,delivery_add,password;
-    Button termsConditionButton,clear,submit;
-
+    EditText first_name, last_name, m_number, delivery_add, password, confirm_password;  // <-- Make sure this line is correct
+    Button termsConditionButton, clear, submit;
     CheckBox agreeCheckbox;
-
     FirebaseDatabase DB;
     DatabaseReference reference;
 
@@ -40,10 +40,8 @@ public class Sign_up extends AppCompatActivity {
         setContentView(R.layout.activity_sign_up);
 
         countryCodePicker = findViewById(R.id.login_countrycode);
-
         clear = findViewById(R.id.clear);
         submit = findViewById(R.id.submit);
-
         agreeCheckbox = findViewById(R.id.agree_checkbox);
         termsConditionButton = findViewById(R.id.tems_condition);
 
@@ -52,6 +50,7 @@ public class Sign_up extends AppCompatActivity {
         m_number = findViewById(R.id.m_number);
         delivery_add = findViewById(R.id.delivery_add);
         password = findViewById(R.id.password);
+        confirm_password = findViewById(R.id.confirm_password);
 
         termsConditionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,17 +74,19 @@ public class Sign_up extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (agreeCheckbox.isChecked()) {
-                    DB = FirebaseDatabase.getInstance();
-                    reference = DB.getReference().child("LORA");
-                    register();
+                    if (validateConfirmPassword()) {
+                        DB = FirebaseDatabase.getInstance();
+                        reference = DB.getReference().child("LORA");
+                        register();
+                    }
                 } else {
                     Toast.makeText(Sign_up.this, "Please agree to the terms and conditions", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
+
 
     private void showTermsAndConditionsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -171,7 +172,7 @@ public class Sign_up extends AppCompatActivity {
     }
     private boolean validateMNumber(){
         String val = m_number.getEditableText().toString();
-        String NumberMatch = "^[+]?[0-9]{10}$";
+        String NumberMatch = "^[+]?[0-9]{11}$";
 
         if(val.matches("m_number")){
 
@@ -179,7 +180,7 @@ public class Sign_up extends AppCompatActivity {
         if(val.isEmpty()){
            m_number.setError("Field cannot be empty");
             return false;
-        } else if (val.length()!=10) {
+        } else if (val.length()!=11) {
             m_number.setError("Mobile number not valid");
             return false;
         }else if (!val.matches(NumberMatch)) {
@@ -206,25 +207,39 @@ public class Sign_up extends AppCompatActivity {
 
     }
 
-    private boolean validatePassword(){
+    private boolean validatePassword() {
         String val = password.getEditableText().toString();
-        String PasswordVal = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
+        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
 
-        if(val.isEmpty()){
-            password.setError("Field cannot be empty");
+        if (val.isEmpty()) {
+            password.setError("Password cannot be empty");
             return false;
-        }else if (!val.matches(PasswordVal)) {
-            password.setError("Password require at least 8 characters with at least one uppercase letter, one lowercase letter, one digit, and one special character");
+        } else if (!val.matches(passwordPattern)) {
+            password.setError("Password must contain at least 8 characters with one uppercase letter, one lowercase letter, one digit, and one special character");
             return false;
-        }
-        else {
+        } else {
             password.setError(null);
             return true;
         }
     }
 
+    private boolean validateConfirmPassword() {
+        String passwordVal = password.getEditableText().toString();
+        String confirmPasswordVal = confirm_password.getEditableText().toString();
+
+        if (!confirmPasswordVal.equals(passwordVal)) {
+            confirm_password.setError("Passwords do not match");
+            return false;
+        } else {
+            confirm_password.setError(null);
+            return true;
+        }
+    }
+
+
     public void register() {
-        if (!validateFirstName() || !validateLastName() || !validateMNumber() || !validateDeliveryAdd() || !validatePassword()) {
+        if (!validateFirstName() || !validateLastName() || !validateMNumber() ||
+                !validateDeliveryAdd() || !validatePassword() || !validateConfirmPassword()) {
             return;
         }
 
@@ -242,14 +257,16 @@ public class Sign_up extends AppCompatActivity {
                     // Mobile number already registered
                     m_number.setError("Mobile number already registered");
                 } else {
+                    // Generate a user ID (you can use a UUID or any other method)
+                    String userId = UUID.randomUUID().toString();
+
                     // Mobile number is unique, proceed with registration
-                    Helper helper = new Helper(fname, lname, mnumber, delivery, pass);
+                    Helper helper = new Helper(userId, fname, lname, mnumber, delivery, pass);
                     reference.child(mnumber).setValue(helper)
                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
-
                                         Log.d("Registration", "Registration successful");
                                         // Registration successful, proceed with OTP verification
                                         countryCodePicker.registerCarrierNumberEditText(m_number);
@@ -261,6 +278,7 @@ public class Sign_up extends AppCompatActivity {
                                         // Start OTP verification
                                         Intent intent = new Intent(Sign_up.this, Verify_otp.class);
                                         intent.putExtra("m_number", countryCodePicker.getFullNumberWithPlus());
+                                        intent.putExtra("user_id", userId); // Pass user ID to the next activity
                                         startActivity(intent);
                                     } else {
                                         Log.e("Registration", "Registration failed", task.getException());
@@ -277,6 +295,7 @@ public class Sign_up extends AppCompatActivity {
                 // Handle the error
             }
         });
+
     }
     @Override
     protected void onPause() {
