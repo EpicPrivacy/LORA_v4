@@ -33,7 +33,6 @@ public class Login extends AppCompatActivity {
     EditText reg_number,password2;
     Button btn_login2,btn_forgot,btn_newAccount;
     private FirebaseAuth mAuth;
-    private String verificationId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +76,6 @@ public class Login extends AppCompatActivity {
         });
 
     }
-
 
     private boolean ValidateRegNumber(){
         String val = reg_number.getText().toString();
@@ -126,8 +124,7 @@ public class Login extends AppCompatActivity {
         if (!ValidateRegNumber() | !ValidatePassword()){
 
         }else {
-            //isUser();
-            loginUserWithPhoneNumber();
+            isUser();
 
         }
     }
@@ -136,7 +133,7 @@ public class Login extends AppCompatActivity {
         password2.setText("");
     }
 
-    private void loginUserWithPhoneNumber() {
+    private void loginUserWithEmailAndPassword() {
         String rawPhoneNumber = reg_number.getText().toString().trim();
         String password = password2.getText().toString().trim();
 
@@ -162,7 +159,7 @@ public class Login extends AppCompatActivity {
                                             // Sign in success, update UI with the signed-in user's information
                                             FirebaseUser user = mAuth.getCurrentUser();
                                             Log.d("LoginActivity", "signInWithCredential:success, user: " + user.getPhoneNumber());
-
+                                            updateUI(user);
                                         } else {
                                             // If sign in fails, display a message to the user.
                                             Log.w("LoginActivity", "signInWithCredential:failure", task.getException());
@@ -190,16 +187,11 @@ public class Login extends AppCompatActivity {
                         // Save the verification ID and token for later use
                         // You can use these values to manually verify the code if needed.
                         // For simplicity, we'll let Firebase handle the verification in onVerificationCompleted.
-                        Login.this.verificationId = verificationId;
-
-                        Intent intent = new Intent(Login.this, Login_verify.class);
-                        intent.putExtra("verificationId", verificationId);
-                        intent.putExtra("m_number", phoneNumber);
-                        startActivity(intent);
                     }
                 });
-    }
 
+        // Note: The verification process will continue in the callbacks, and you don't need to explicitly create PhoneAuthCredential here.
+    }
 
     private String formatPhoneNumber(String phoneNumber) {
         // Check if the phone number already starts with a plus sign
