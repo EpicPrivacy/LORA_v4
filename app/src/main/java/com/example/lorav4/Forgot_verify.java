@@ -140,7 +140,7 @@ public class Forgot_verify extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 setInProgress(false);
                 if(task.isSuccessful()){
-                    Intent intent = new Intent(Forgot_verify.this,Forgot_password_change.class);
+                    Intent intent = new Intent(Forgot_verify.this,Dashboard.class);
                     intent.putExtra("m_number",m_number);
                     startActivity(intent);
                 }else{

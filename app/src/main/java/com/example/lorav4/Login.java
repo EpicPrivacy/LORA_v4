@@ -2,6 +2,7 @@ package com.example.lorav4;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,10 +13,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.PhoneAuthCredential;
+import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -23,11 +26,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.concurrent.TimeUnit;
+
 public class Login extends AppCompatActivity {
 
     EditText reg_number,password2;
     Button btn_login2,btn_forgot,btn_newAccount;
     private FirebaseAuth mAuth;
+    private String verificationId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +77,7 @@ public class Login extends AppCompatActivity {
         });
 
     }
+
 
     private boolean ValidateRegNumber(){
         String val = reg_number.getText().toString();
@@ -119,8 +126,9 @@ public class Login extends AppCompatActivity {
         if (!ValidateRegNumber() | !ValidatePassword()){
 
         }else {
-            isUser();
-            loginUserWithEmailAndPassword();
+            //isUser();
+            loginUserWithPhoneNumber();
+
         }
     }
     private void clearInputFields() {
@@ -128,35 +136,82 @@ public class Login extends AppCompatActivity {
         password2.setText("");
     }
 
-    private void loginUserWithEmailAndPassword() {
-        String email = reg_number.getText().toString().trim();
-        String password = password2.getEditableText().toString().trim();
+    private void loginUserWithPhoneNumber() {
+        String rawPhoneNumber = reg_number.getText().toString().trim();
+        String password = password2.getText().toString().trim();
 
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+        // Ensure the phone number is in E.164 format
+        String phoneNumber = formatPhoneNumber(rawPhoneNumber);
+
+        // Use the FirebaseAuth instance to initiate the phone number authentication
+        PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                phoneNumber,
+                60, // Timeout duration
+                TimeUnit.SECONDS,
+                this, // Activity (for callback binding)
+                new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                     @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+                    public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
+                        // This callback is triggered if the phone number can be instantly verified
+                        // without needing to send or enter a verification code.
+                        mAuth.signInWithCredential(phoneAuthCredential)
+                                .addOnCompleteListener(Login.this, new OnCompleteListener<AuthResult>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<AuthResult> task) {
+                                        if (task.isSuccessful()) {
+                                            // Sign in success, update UI with the signed-in user's information
+                                            FirebaseUser user = mAuth.getCurrentUser();
+                                            Log.d("LoginActivity", "signInWithCredential:success, user: " + user.getPhoneNumber());
 
-                                Toast.makeText(Login.this, "Invalid email or password", Toast.LENGTH_SHORT).show();
-                            } else {
-                                // Other authentication failures
-                                Toast.makeText(Login.this, "Authentication failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
-                            }
+                                        } else {
+                                            // If sign in fails, display a message to the user.
+                                            Log.w("LoginActivity", "signInWithCredential:failure", task.getException());
+                                            Toast.makeText(Login.this, "Authentication failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
 
-                            // Clear fields
-                            clearInputFields();
-                        }
+                                            // Clear fields
+                                            clearInputFields();
+                                        }
+                                    }
+                                });
                     }
 
-                });
+                    @Override
+                    public void onVerificationFailed(@NonNull FirebaseException e) {
+                        // This callback is invoked when an invalid request for verification is made,
+                        // for instance, if the phone number format is not valid.
+                        Log.w("LoginActivity", "onVerificationFailed", e);
+                        Toast.makeText(Login.this, "Phone number verification failed. Please check your phone number.", Toast.LENGTH_SHORT).show();
+                    }
 
+                    @Override
+                    public void onCodeSent(@NonNull String verificationId,
+                                           @NonNull PhoneAuthProvider.ForceResendingToken token) {
+                        // This callback is invoked when the verification code is successfully sent to the user's phone.
+                        // Save the verification ID and token for later use
+                        // You can use these values to manually verify the code if needed.
+                        // For simplicity, we'll let Firebase handle the verification in onVerificationCompleted.
+                        Login.this.verificationId = verificationId;
+
+                        Intent intent = new Intent(Login.this, Login_verify.class);
+                        intent.putExtra("verificationId", verificationId);
+                        intent.putExtra("m_number", phoneNumber);
+                        startActivity(intent);
+                    }
+                });
     }
+
+
+    private String formatPhoneNumber(String phoneNumber) {
+        // Check if the phone number already starts with a plus sign
+        if (!phoneNumber.startsWith("+")) {
+            // Add the plus sign and any necessary country code
+            // For example, assuming country code for the Philippines is +63
+            phoneNumber = "+63" + phoneNumber;
+        }
+        return phoneNumber;
+    }
+
+
     private void updateUI(FirebaseUser user) {
         if (user != null) {
             // Navigate to the dashboard or perform other actions for successful login
@@ -172,8 +227,7 @@ public class Login extends AppCompatActivity {
 
 
     private void isUser() {
-        String RegNumEnter = reg_number.getEditableText().toString().trim();
-        String PasswordEnter = password2.getEditableText().toString().trim();
+        String RegNumEnter = reg_number.getText().toString().trim();
 
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("LORA");
         Query CheckUser = reference.orderByChild("mobileNumber").equalTo(RegNumEnter);
@@ -181,52 +235,50 @@ public class Login extends AppCompatActivity {
         CheckUser.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                        String PasswordFromDB = userSnapshot.child("password").getValue(String.class);
 
-                if(snapshot.exists()){
-                    reg_number.setError(null);
-                    String PasswordFromDB = snapshot.child(RegNumEnter).child("password").getValue(String.class);
+                        // Check if the entered password matches the password from the database
+                        if (PasswordFromDB.equals(password2.getText().toString().trim())) {
+                            reg_number.setError(null);
 
+                            String firstnameDB = userSnapshot.child("first_name").getValue(String.class);
+                            String lastnameDB = userSnapshot.child("last_name").getValue(String.class);
+                            String m_numberDB = userSnapshot.child("m_number").getValue(String.class);
+                            String delivery_addDB = userSnapshot.child("delivery_add").getValue(String.class);
 
-                    if(PasswordFromDB.equals(PasswordEnter)){
-                        reg_number.setError(null);
+                            Intent intent = new Intent(Login.this, Dashboard.class);
 
-                        String firstnameDB = snapshot.child(RegNumEnter).child("first_name").getValue(String.class);
-                        String lastnameDB = snapshot.child(RegNumEnter).child("last_name").getValue(String.class);
-                        String m_numberDB = snapshot.child(RegNumEnter).child("m_number").getValue(String.class);
-                        String delivery_addDB = snapshot.child(RegNumEnter).child("delivery_add").getValue(String.class);
+                            intent.putExtra("first_name", firstnameDB);
+                            intent.putExtra("last_name", lastnameDB);
+                            intent.putExtra("m_number", m_numberDB);
+                            intent.putExtra("delivery_add", delivery_addDB);
+                            intent.putExtra("password", PasswordFromDB);
 
-
-                        Intent intent = new Intent(Login.this,Dashboard.class);
-
-                        intent.putExtra("first_name",firstnameDB);
-                        intent.putExtra("last_name",lastnameDB);
-                        intent.putExtra("m_number",m_numberDB);
-                        intent.putExtra("delivery_add",delivery_addDB);
-                        intent.putExtra("password",PasswordFromDB);
-
-                        startActivity(intent);
-
-                        finish();
-
-
-                    }else {
-                        password2.setError("Invalid Credentials");
-                        password2.requestFocus();
+                            startActivity(intent);
+                            finish();
+                            return; // Exit the method after successful login
+                        } else {
+                            password2.setError("Invalid Credentials");
+                            password2.requestFocus();
+                            return; // Exit the method if the passwords don't match
+                        }
                     }
-                }
-                else {
+                } else {
                     reg_number.setError("User does not Exist");
                     reg_number.requestFocus();
-
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                // Handle database error
             }
         });
     }
+
+
 
     @Override
     protected void onPause() {

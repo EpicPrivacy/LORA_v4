@@ -82,7 +82,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:background="@drawable/button_background"
-            android:text="Add/Update to Firebase"
+            android:text="Add Transaction"
             android:textColor="#ffff" />
 
         <Button

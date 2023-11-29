@@ -1,10 +1,12 @@
 package com.example.lorav4;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,17 +26,30 @@ public class Dashboard extends AppCompatActivity {
         btn_update_loc = findViewById(R.id.btn_update_loc);
         btn_changePass = findViewById(R.id.btn_changePass);
 
+
         btn_logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Sign out the user from Firebase Authentication
-                FirebaseAuth.getInstance().signOut();
+                // Show a confirmation dialog before logging out
+                new AlertDialog.Builder(Dashboard.this)
+                        .setTitle("Logout")
+                        .setMessage("Are you sure you want to log out?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Sign out the user from Firebase Authentication
+                                FirebaseAuth.getInstance().signOut();
 
-                // Redirect to the login or main activity
-                startActivity(new Intent(Dashboard.this, MainActivity.class));
-                finish(); // Finish the current activity to prevent going back with the back button
+                                // Redirect to the login or main activity
+                                startActivity(new Intent(Dashboard.this, Login.class));
+                                finish(); // Finish the current activity to prevent going back with the back button
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
             }
         });
+
         btn_transaction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,11 +83,7 @@ public class Dashboard extends AppCompatActivity {
             }
         });
     }
-    @Override
-    public void onBackPressed() {
-        // Do nothing (disable the back button)
-        super.onBackPressed();
-    }
+
     @Override
     protected void onPause() {
         super.onPause();
