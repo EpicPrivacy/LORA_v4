@@ -1,4 +1,4 @@
-package com.example.lorav4;
+package com.example.lorav4.Admin;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,25 +10,28 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.maps.GoogleMap;
+import com.example.lorav4.R;
 
 import java.util.List;
 
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
 
     private List<Order> orderList;
-    private OnItemClickListener listener;
+    private OnItemClickListener onItemClickListener;
 
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.onItemClickListener = listener;
+    }
     public interface OnItemClickListener {
-        void onMapReady(GoogleMap map);
-
         void onItemClick(Order order);
     }
 
+
     public OrderAdapter(List<Order> orderList, OnItemClickListener listener) {
         this.orderList = orderList;
-        this.listener = listener;
+        this.onItemClickListener = listener;
     }
+
 
     @NonNull
     @Override
@@ -51,7 +54,13 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     @Override
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
         Order order = orderList.get(position);
-        holder.bind(order, listener);
+        holder.bind(order);
+
+        holder.itemView.setOnClickListener(v -> {
+            if (onItemClickListener != null) {
+                onItemClickListener.onItemClick(order);
+            }
+        });
 
         holder.orderIdTextView.setText("Order ID: " + order.getOrderId());
         holder.orderIdTextView.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.black));
@@ -91,14 +100,12 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             addressTextView = itemView.findViewById(R.id.textViewAddress);
         }
 
-        public void bind(final Order order, final OnItemClickListener listener) {
+        public void bind(final Order order) {
             orderIdTextView.setText("Order ID: " + order.getOrderId());
             firstNameTextView.setText("First Name: " + order.getFirstName());
             lastNameTextView.setText("Last Name: " + order.getLastName());
             mobileNumberTextView.setText("Mobile Number: " + order.getMobileNumber());
             addressTextView.setText("Address: " + order.getAddress());
-
-            itemView.setOnClickListener(v -> listener.onItemClick(order));
         }
     }
 
