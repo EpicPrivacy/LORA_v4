@@ -15,11 +15,24 @@
         tools:context=".Admin.Admin_transaction">
 
         <!-- RecyclerView to display data -->
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
-            android:layout_height="316dp"
-            android:layout_marginTop="16dp" />
+            android:layout_height="278dp"
+            android:layout_marginTop="16dp">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <Spinner
+            android:id="@+id/spinnerUsers"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/edit_text_background"
+            />
 
         <EditText
             android:id="@+id/editTextFirstName"
