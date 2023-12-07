@@ -78,9 +78,6 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
         recyclerView.setAdapter(orderAdapter);
 
 
-        // Load data from Firebase
-        loadDataFromFirebase();
-
         // Initialize FirebaseDBHelper
         firebaseDBHelper = new FirebaseDBHelper();
 
@@ -109,6 +106,10 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
                 editTextAddress.setText("");
             }
         });
+
+
+        // Load data from Firebase
+        loadDataFromFirebase();
     }
 
     private void populateSpinner() {
@@ -241,34 +242,26 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
     }
 
     private void loadDataFromFirebase() {
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            databaseReference.orderByKey().addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    orderList.clear();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        Order order = dataSnapshot.getValue(Order.class);
-                        // Check if the order's userId matches the current user's userId or the one selected in the spinner
-                        if (order != null) {
-                            if (userId.equals(order.getUserId()) || (selectedSpinnerUserId != null && selectedSpinnerUserId.equals(order.getUserId()))) {
-                                orderList.add(order);
-                            }
-                        }
+        databaseReference.orderByKey().addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                orderList.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Order order = dataSnapshot.getValue(Order.class);
+                    if (order != null) {
+                        orderList.add(order);
                     }
-                    orderAdapter.notifyDataSetChanged();
+                }
+                orderAdapter.notifyDataSetChanged();
 
-                    Log.d("Firebase", "Data loaded successfully. Order count: " + orderList.size());
-                }
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    // Handle errors
-                }
-            });
-        } else {
-            // Handle the case where currentUser is null (user not signed in)
-            Log.e("Firebase", "User not signed in. Unable to load data from Firebase.");
-        }
+                Log.d("Firebase", "Data loaded successfully. Order count: " + orderList.size());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle errors
+            }
+        });
     }
 
 
