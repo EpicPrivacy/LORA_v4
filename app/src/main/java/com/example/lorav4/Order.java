@@ -57,18 +57,14 @@ public class Order {
     private String mobileNumber;
     private String address;
 
-    // Default constructor required for calls to DataSnapshot.getValue(Order.class)
-    public Order() {
-    }
-
     // Constructor
-    public Order(String orderId, String userId, String firstName, String lastName, String mobileNumber, String address) {
+    public Order(String orderId, String firstName, String lastName, String mobileNumber, String address, String userId) {
         this.orderId = orderId;
-        this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.mobileNumber = mobileNumber;
         this.address = address;
+        this.userId = userId;
     }
 
 

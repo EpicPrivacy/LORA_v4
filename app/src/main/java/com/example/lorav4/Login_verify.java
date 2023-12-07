@@ -2,6 +2,8 @@ package com.example.lorav4;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -44,88 +46,48 @@ public class Login_verify extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login_verify);
 
-        otp_input = findViewById(R.id.login_otp_input);
-        btn_next = findViewById(R.id.login_btn_next);
-        progressBar = findViewById(R.id.login_progressBar);
-        btn_resend = findViewById(R.id.login_btn_resend);
+        setContentView(R.layout.activity_verify_otp);
 
-        if (verificationId == null && savedInstanceState != null) {
-            onRestoreInstanceState(savedInstanceState);
-        }
-        m_number = getIntent().getStringExtra("m_number");
+        otp_input = findViewById(R.id.otp_input);
+        btn_next = findViewById(R.id.btn_next);
+        progressBar = findViewById(R.id.progressBar);
+        btn_resend = findViewById(R.id.btn_resend);
+
+        m_number = getIntent().getExtras().getString("m_number");
+
+
         if (m_number == null) {
+            // Handle the case where m_number is null
             Log.e("VerifyOtpActivity", "m_number is null");
-            finish();
+            finish();  // Finish the activity or take appropriate action
             return;
         }
 
-        sendOtp(m_number, false);
+        sendOtp(m_number,false);
 
         btn_next.setOnClickListener(v -> {
-            ValidateRegNumber();
             String enteredOtp = otp_input.getText().toString();
-            signIn(enteredOtp);  // Pass the entered OTP directly
+
+            // Check if verificationCode is not null or empty before proceeding
+            if (verificationCode != null && !verificationCode.isEmpty()) {
+                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationCode, enteredOtp);
+                signIn(credential);
+            } else {
+                // Handle the case where verificationCode is null or empty
+                AndroidUtil.showtoast(getApplicationContext(), "Verification code is not available");
+            }
         });
 
-
-        btn_resend.setOnClickListener((v) -> {
-            sendOtp(m_number, true);
+        btn_resend.setOnClickListener((v)->{
+            sendOtp(m_number,true);
         });
+
     }
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString(KEY_VERIFICATION_ID,verificationId);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        verificationId = savedInstanceState.getString(KEY_VERIFICATION_ID);
-    }
-
-    private void ValidateRegNumber() {
-        String val = otp_input.getText().toString();
-        if (val.isEmpty()) {
-            otp_input.setError("Field cannot be empty");
-        } else {
-            otp_input.setError(null);
-        }
-    }
-
-    void signIn(String enteredOtp) {
-        setInProgress(true);
-
-        // Check if verificationId and enteredOtp are not null or empty
-        if (verificationId != null && !verificationId.isEmpty() && enteredOtp != null && !enteredOtp.isEmpty()) {
-            // Construct PhoneAuthCredential using verificationId and entered OTP
-            PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, enteredOtp);
-
-            mAuth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()) {
-                        Intent intent = new Intent(Login_verify.this, Dashboard.class);
-                        intent.putExtra("m_number", m_number);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        AndroidUtil.showtoast(getApplicationContext(), "OTP verification failed");
-                    }
-                    setInProgress(false);
-                }
-            });
-        } else {
-            AndroidUtil.showtoast(getApplicationContext(), "Verification ID or OTP is null or empty");
-            setInProgress(false);
-        }
-    }
-
 
     void sendOtp(String phoneNumber, boolean isResend) {
         startResendTimer();
+        setInProgress(true);
 
         PhoneAuthOptions.Builder builder =
                 PhoneAuthOptions.newBuilder(mAuth)
@@ -135,7 +97,7 @@ public class Login_verify extends AppCompatActivity {
                         .setCallbacks(new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
                             @Override
                             public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
-                                signIn(String.valueOf(phoneAuthCredential));
+                                signIn(phoneAuthCredential);
                                 setInProgress(false);
                             }
 
@@ -149,9 +111,9 @@ public class Login_verify extends AppCompatActivity {
                             public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
                                 super.onCodeSent(s, forceResendingToken);
                                 verificationCode = s;
-                                verificationId = forceResendingToken.toString(); // Use toString() to get a string representation
                                 resendingToken = forceResendingToken;
                                 AndroidUtil.showtoast(getApplicationContext(), "OTP sent successfully");
+                                setInProgress(false);
 
                                 Log.d("VerifyOtpActivity", "Entered OTP: " + otp_input.getText().toString());
                                 Log.d("VerifyOtpActivity", "Verification Code: " + verificationCode);
@@ -176,40 +138,70 @@ public class Login_verify extends AppCompatActivity {
         }
     }
 
+    void signIn(PhoneAuthCredential phoneAuthCredential){
+        //login and go to next activity
+        Log.d("VerifyOtpActivity", "Attempting to sign in...");
 
+        setInProgress(true);
+        mAuth.signInWithCredential(phoneAuthCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                setInProgress(false);
+                if(task.isSuccessful()){
+                    Intent intent = new Intent(Login_verify.this,Dashboard.class);
+                    intent.putExtra("m_number",m_number);
+                    startActivity(intent);
+                    finish();
+                }else{
+                    AndroidUtil.showtoast(getApplicationContext(),"OTP verification failed");
+                }
+            }
+        });
+
+
+    }
 
     void startResendTimer() {
         btn_resend.setEnabled(false);
         Timer timer = new Timer();
+        Handler handler = new Handler(Looper.getMainLooper());
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 timeoutSeconds--;
-
-                runOnUiThread(() -> {
-                    btn_resend.setText("Resend OTP in " + timeoutSeconds + " seconds");
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        btn_resend.setText("Resend OTP in " + timeoutSeconds + " seconds");
+                    }
                 });
 
                 if (timeoutSeconds <= 0) {
                     timeoutSeconds = 60L;
                     timer.cancel();
-
-                    runOnUiThread(() -> {
-                        btn_resend.setEnabled(true);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            btn_resend.setEnabled(true);
+                        }
                     });
                 }
             }
         }, 0, 1000);
     }
-
     @Override
     protected void onPause() {
         super.onPause();
+        // This method is called when the activity is no longer in the foreground.
+        // You might want to stop ongoing processes or resources here.
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // This method is called when the activity is being destroyed.
+        // Release resources, unregister listeners, or perform cleanup tasks here.
     }
+
 }

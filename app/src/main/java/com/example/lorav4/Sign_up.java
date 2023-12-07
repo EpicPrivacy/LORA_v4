@@ -1,7 +1,11 @@
 package com.example.lorav4;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,7 +17,19 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -26,15 +42,24 @@ import com.hbb20.CountryCodePicker;
 import java.util.UUID;
 
 
-
 public class Sign_up extends AppCompatActivity {
 
-    CountryCodePicker countryCodePicker;
-    EditText first_name, last_name, m_number, delivery_add, password, confirm_password;  // <-- Make sure this line is correct
-    Button termsConditionButton, clear, submit;
-    CheckBox agreeCheckbox;
-    FirebaseDatabase DB;
-    DatabaseReference reference;
+    private CountryCodePicker countryCodePicker;
+    private EditText first_name, last_name, m_number, password, confirm_password;
+    private Button termsConditionButton, clear, submit;
+    private CheckBox agreeCheckbox;
+    private FirebaseDatabase DB;
+    private DatabaseReference reference;
+
+    private GoogleMap mMap;
+    private SupportMapFragment mapFragment;
+    private LatLng selectedLatLng;
+
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +75,33 @@ public class Sign_up extends AppCompatActivity {
         first_name = findViewById(R.id.first_name);
         last_name = findViewById(R.id.last_name);
         m_number = findViewById(R.id.m_number);
-        delivery_add = findViewById(R.id.delivery_add);
         password = findViewById(R.id.password);
         confirm_password = findViewById(R.id.confirm_password);
+
+        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this::onMapReady);
+        }
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Create a location request
+        locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(10000); // 10 seconds
+
+        // Create a location callback
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    updateMap(new LatLng(location.getLatitude(), location.getLongitude()));
+                }
+            }
+        };
 
         termsConditionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,7 +117,6 @@ public class Sign_up extends AppCompatActivity {
                 first_name.setText("");
                 last_name.setText("");
                 m_number.setText("");
-                delivery_add.setText("");
                 password.setText("");
             }
         });
@@ -89,7 +137,65 @@ public class Sign_up extends AppCompatActivity {
         });
     }
 
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
 
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                addMarkerToMap(latLng);
+                selectedLatLng = latLng;
+            }
+        });
+
+        // Check location permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                startLocationUpdates();
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        1);
+            }
+        } else {
+            startLocationUpdates();
+        }
+    }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
+    }
+    private void stopLocationUpdates() {
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+    }
+
+    private void addMarkerToMap(LatLng latLng) {
+        mMap.clear(); // Clear existing markers
+
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(latLng)
+                .title("Selected Location");
+        mMap.addMarker(markerOptions);
+
+        selectedLatLng = latLng;
+    }
+
+    private void updateMap(LatLng latLng) {
+        mMap.clear();
+        addMarkerToMap(latLng);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+    }
     private void showTermsAndConditionsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Terms and Conditions");
@@ -136,7 +242,7 @@ public class Sign_up extends AppCompatActivity {
                 "Logistics Routing Solution\n" +
                 "56JG+C3 Los Baños, Laguna\n" +
                 "09564001376"
-                );
+        );
 
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
@@ -180,7 +286,7 @@ public class Sign_up extends AppCompatActivity {
 
         }
         if(val.isEmpty()){
-           m_number.setError("Field cannot be empty");
+            m_number.setError("Field cannot be empty");
             return false;
         } else if (val.length()!=11) {
             m_number.setError("Mobile number not valid");
@@ -193,20 +299,6 @@ public class Sign_up extends AppCompatActivity {
             m_number.setError(null);
             return true;
         }
-    }
-    private boolean validateDeliveryAdd(){
-        String val = delivery_add.getEditableText().toString();
-
-
-        if(val.isEmpty()){
-            delivery_add.setError("Field cannot be empty");
-            return false;
-        }else {
-            delivery_add.setError(null);
-            return true;
-        }
-
-
     }
 
     private boolean validatePassword() {
@@ -241,15 +333,16 @@ public class Sign_up extends AppCompatActivity {
 
     public void register() {
         if (!validateFirstName() || !validateLastName() || !validateMNumber() ||
-                !validateDeliveryAdd() || !validatePassword() || !validateConfirmPassword()) {
+                 !validatePassword() || !validateConfirmPassword()) {
             return;
         }
+
 
         String fname = first_name.getEditableText().toString();
         String lname = last_name.getText().toString();
         String mnumber = m_number.getText().toString();
-        String delivery = delivery_add.getText().toString();
         String pass = password.getText().toString();
+
 
         DatabaseReference userRef = DB.getReference().child("LORA").child(mnumber);
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -262,8 +355,9 @@ public class Sign_up extends AppCompatActivity {
                     // Generate a user ID (you can use a UUID or any other method)
                     String userId = UUID.randomUUID().toString();
 
+
                     // Mobile number is unique, proceed with registration
-                    Helper helper = new Helper(userId, fname, lname, mnumber, delivery, pass);
+                    Helper helper = new Helper(userId, fname, lname, mnumber, pass, selectedLatLng.latitude, selectedLatLng.longitude);
                     reference.child(mnumber).setValue(helper)
                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
@@ -302,8 +396,7 @@ public class Sign_up extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // This method is called when the activity is no longer in the foreground.
-        // You might want to stop ongoing processes or resources here.
+        stopLocationUpdates();
     }
 
     @Override

@@ -3,7 +3,6 @@ package com.example.lorav4;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -13,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -30,10 +30,7 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
     private OrderAdapter orderAdapter;
     private List<Order> orderList;
     private DatabaseReference databaseReference;
-    private EditText editTextFirstName, editTextLastName, editTextMobileNumber, editTextAddress;
-    private Button btnAddUpdateToFirebase;
 
-    // Firebase authentication
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
 
@@ -42,53 +39,34 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_transactions);
 
-        // Initialize Firebase Database
-        databaseReference = FirebaseDatabase.getInstance().getReference("orders");
-
         // Initialize Firebase Authentication
         mAuth = FirebaseAuth.getInstance();
-        // Inside your Transaction activity or fragment
+
+        // Check if the user is signed in
         currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            // User not signed in, you might want to redirect to the sign-in activity or take appropriate action
+            Log.e("Firebase", "User not signed in.");
+            // Handle this situation according to your app's logic
+        } else {
+            // User is signed in, continue with the rest of your initialization
+            // Initialize RecyclerView
+            recyclerView = findViewById(R.id.recyclerView);
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+            orderList = new ArrayList<>();
+            orderAdapter = new OrderAdapter(orderList, this);
+            recyclerView.setAdapter(orderAdapter);
+
+            // Load data from Firebase
+            loadDataFromFirebase();
+
+            // Initialize Firebase Database
+            databaseReference = FirebaseDatabase.getInstance().getReference("users").child(currentUser.getUid()).child("orders");
+        }
 
 
 
-        // Initialize UI components
-        editTextFirstName = findViewById(R.id.editTextFirstName);
-        editTextLastName = findViewById(R.id.editTextLastName);
-        editTextMobileNumber = findViewById(R.id.editTextMobileNumber);
-        editTextAddress = findViewById(R.id.editTextAddress);
-        btnAddUpdateToFirebase = findViewById(R.id.btnAddUpdateToFirebase);
-
-        // Initialize RecyclerView
-        recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        orderList = new ArrayList<>();
-        orderAdapter = new OrderAdapter(orderList, this);
-        recyclerView.setAdapter(orderAdapter);
-
-        // Load data from Firebase
-        loadDataFromFirebase();
-
-        // Set onClickListener for the add/update button
-        btnAddUpdateToFirebase.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addOrUpdateToFirebase();
-            }
-        });
-        Button btnClearFields = findViewById(R.id.btnClearFields);
-
-        btnClearFields.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Clear input fields
-                editTextFirstName.setText("");
-                editTextLastName.setText("");
-                editTextMobileNumber.setText("");
-                editTextAddress.setText("");
-            }
-        });
     }
 
     private void showOptionsDialog(Order order) {
@@ -128,28 +106,6 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
 
         builder.setView(view);
 
-        builder.setPositiveButton("Update", (dialog, which) -> {
-            // Get updated values from EditTexts
-            String updatedFirstName = editTextFirstName.getText().toString().trim();
-            String updatedLastName = editTextLastName.getText().toString().trim();
-            String updatedMobileNumber = editTextMobileNumber.getText().toString().trim();
-            String updatedAddress = editTextAddress.getText().toString().trim();
-
-            // Validate input
-            if (isValidInput(updatedFirstName, updatedLastName, updatedMobileNumber, updatedAddress)) {
-                // Update the order in Firebase
-                updateOrderInFirebase(updatedFirstName, updatedLastName, updatedMobileNumber, updatedAddress);
-            } else {
-                // Show an error message or handle invalid input
-                Toast.makeText(this, "Invalid input. Please fill in all fields.", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNegativeButton("Cancel", (dialog, which) -> {
-            // Do nothing, simply close the dialog
-        });
-
-        builder.show();
     }
 
     private void deleteOrderFromFirebase(String orderId) {
@@ -168,58 +124,28 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
     }
 
     private void loadDataFromFirebase() {
-        // Check if currentUser is not null before accessing its properties
         if (currentUser != null) {
-            databaseReference.orderByKey()
-                    .addValueEventListener(new ValueEventListener() {
+            // Load data only for the current user's "orders" node
+            databaseReference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    orderList.clear();
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        Order order = dataSnapshot.getValue(Order.class);
+                        orderList.add(order);
+                    }
+                    orderAdapter.notifyDataSetChanged();
 
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            orderList.clear();
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                Order order = dataSnapshot.getValue(Order.class);
-                                orderList.add(order);
-                            }
-                            orderAdapter.notifyDataSetChanged();
+                    Log.d("Firebase", "Data loaded successfully. Order count: " + orderList.size());
+                }
 
-                            Log.d("Firebase", "Data loaded successfully. Order count: " + orderList.size());
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            // Handle errors
-                        }
-                    });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    // Handle errors
+                }
+            });
         } else {
-            // Handle the case where currentUser is null (user not signed in)
-            // For example, you can show a message to the user or navigate to the sign-in activity
             Log.e("Firebase", "User not signed in. Unable to load data from Firebase.");
-        }
-    }
-
-
-    private void addOrUpdateToFirebase() {
-        // Get input values
-        String firstName = editTextFirstName.getText().toString().trim();
-        String lastName = editTextLastName.getText().toString().trim();
-        String mobileNumber = editTextMobileNumber.getText().toString().trim();
-        String address = editTextAddress.getText().toString().trim();
-
-        // Validate input
-        if (isValidInput(firstName, lastName, mobileNumber, address)) {
-            // Check if the order already exists (based on some condition, e.g., mobile number)
-            boolean orderExists = checkOrderExists(mobileNumber);
-
-            if (orderExists) {
-                // Update existing order
-                updateOrderInFirebase(firstName, lastName, mobileNumber, address);
-            } else {
-                // Add new order
-                addOrderToFirebase(firstName, lastName, mobileNumber, address);
-            }
-        } else {
-            // Show an error message or handle invalid input
-            Toast.makeText(this, "Invalid input. Please fill in all fields.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -237,50 +163,11 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
         return false;
     }
 
-    private void addOrderToFirebase(String firstName, String lastName, String mobileNumber, String address) {
-        // Count the number of existing orders
-        int orderNumber = orderList.size() + 1;
-
-        // Push the new order to the "orders" node with the generated order number
-        String orderId = databaseReference.push().getKey();
-        Order order = new Order(orderId, String.valueOf(orderNumber), firstName, lastName, mobileNumber, address);
-        databaseReference.child(orderId).setValue(order)
-                .addOnSuccessListener(aVoid -> {
-                    // Data added successfully
-                    // You might want to show a success message or take other actions
-                    Toast.makeText(this, "Order added successfully", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    // Handle errors
-                    // e.g., log the error or display an error message to the user
-                    Toast.makeText(this, "Error adding order to Firebase", Toast.LENGTH_SHORT).show();
-                });
-    }
 
 
-    private void updateOrderInFirebase(String firstName, String lastName, String mobileNumber, String address) {
-        // Find the existing order and update its fields
-        for (Order order : orderList) {
-            if (order.getMobileNumber().equals(mobileNumber)) {
-                order.setFirstName(firstName);
-                order.setLastName(lastName);
-                order.setAddress(address);
+    @Override
+    public void onMapReady(GoogleMap map) {
 
-                // Update the order in Firebase
-                databaseReference.child(order.getOrderId()).setValue(order)
-                        .addOnSuccessListener(aVoid -> {
-                            // Data updated successfully
-                            // You might want to show a success message or take other actions
-                            Toast.makeText(this, "Order updated successfully", Toast.LENGTH_SHORT).show();
-                        })
-                        .addOnFailureListener(e -> {
-                            // Handle errors
-                            // e.g., log the error or display an error message to the user
-                            Toast.makeText(this, "Error updating order in Firebase", Toast.LENGTH_SHORT).show();
-                        });
-                break;
-            }
-        }
     }
 
     public void onItemClick(Order order) {
@@ -294,4 +181,8 @@ public class Transactions extends AppCompatActivity implements OrderAdapter.OnIt
         // Remove Firebase listeners here
     }
 
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
+    }
 }

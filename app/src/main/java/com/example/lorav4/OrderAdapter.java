@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.GoogleMap;
+
 import java.util.List;
 
 public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHolder> {
@@ -18,6 +20,8 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
+        void onMapReady(GoogleMap map);
+
         void onItemClick(Order order);
     }
 
