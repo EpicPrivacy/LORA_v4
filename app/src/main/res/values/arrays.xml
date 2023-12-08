@@ -2,5 +2,6 @@
     <string-array name="user_types">
         <item>Customer</item>
         <item>Driver</item>
+        <item>Admin</item>
     </string-array>
 </resources>

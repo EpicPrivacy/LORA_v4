@@ -158,17 +158,14 @@ public class Login extends AppCompatActivity {
 
                             String userType = userSnapshot.child("userType").getValue(String.class);
 
-                            if (RegNumEnter.equals("09000000000") && PasswordFromDB.equals("@dminPassw0rd")) {
-                                Intent intent = new Intent(Login.this, Admin_transaction.class);
-                                startActivity(intent);
-                            } else {
-                                // Check if the selected user type in the spinner matches the user type in the database
+
                                 String selectedUserType = userSpinner2.getSelectedItem().toString();
 
                                 if (userTypeFromDB.equals(selectedUserType)) {
                                     // User types match, proceed to the corresponding activity
                                     if (userTypeFromDB.equals("Customer")) {
                                         Intent intent = new Intent(Login.this, Login_verify.class);
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                         String formatNum = reg_number.getText().toString().substring(1).trim();
                                         String countryCode = "+63" + formatNum;
                                         intent.putExtra("m_number", countryCode);
@@ -176,6 +173,15 @@ public class Login extends AppCompatActivity {
                                         startActivity(intent);
                                     } else if (userTypeFromDB.equals("Driver")) {
                                         Intent intent = new Intent(Login.this, Driver_verify.class);
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        String formatNum = reg_number.getText().toString().substring(1).trim();
+                                        String countryCode = "+63" + formatNum;
+                                        intent.putExtra("m_number", countryCode);
+                                        intent.putExtra("userType", userType);
+                                        startActivity(intent);
+                                    }else if (userTypeFromDB.equals("Admin")) {
+                                        Intent intent = new Intent(Login.this, Admin_transaction.class);
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                         String formatNum = reg_number.getText().toString().substring(1).trim();
                                         String countryCode = "+63" + formatNum;
                                         intent.putExtra("m_number", countryCode);
@@ -192,11 +198,6 @@ public class Login extends AppCompatActivity {
 
 
                             return;
-                        } else {
-                            password2.setError("Invalid Credentials");
-                            password2.requestFocus();
-                            return; // Exit the method if the passwords don't match
-                        }
                     }
                 } else {
                     reg_number.setError("User does not Exist");

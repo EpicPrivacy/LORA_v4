@@ -16,7 +16,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class Drivers_dashboard extends AppCompatActivity {
 
-    private Button driver_btn_transaction,driver_btn_changePass,driver_btn_logout;
+    private Button driver_btn_transaction,driver_btn_changePass,driver_btn_logout,driver_btn_tracklocation;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +25,7 @@ public class Drivers_dashboard extends AppCompatActivity {
         driver_btn_transaction = findViewById(R.id.driver_btn_transaction);
         driver_btn_changePass = findViewById(R.id.driver_btn_changePass);
         driver_btn_logout = findViewById(R.id.driver_btn_logout);
+        driver_btn_tracklocation = findViewById(R.id.driver_btn_traclocation);
 
         driver_btn_logout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,6 +55,14 @@ public class Drivers_dashboard extends AppCompatActivity {
             public void onClick(View v) {
 
                 startActivity(new Intent(Drivers_dashboard.this, Drivers_transaction.class));
+
+            }
+        });
+        driver_btn_tracklocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                startActivity(new Intent(Drivers_dashboard.this, Drivers_track_location.class));
 
             }
         });

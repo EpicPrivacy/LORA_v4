@@ -127,7 +127,7 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
                     String lastName = snapshot.child("lastName").getValue(String.class);
                     String mobileNumber = snapshot.child("firstName").getValue(String.class) + " " + snapshot.child("lastName").getValue(String.class);
 
-                    if (mobileNumber != null && !(firstName.equals("Admin") && lastName.equals("Amin"))) {
+                    if (mobileNumber != null && !(firstName.equals("Super") && lastName.equals("Admin"))) {
                         mobileNumbers.add(mobileNumber);
                     }
                 }

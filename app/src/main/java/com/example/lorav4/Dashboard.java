@@ -41,7 +41,9 @@ public class Dashboard extends AppCompatActivity {
                                 FirebaseAuth.getInstance().signOut();
 
                                 // Redirect to the login or main activity
-                                startActivity(new Intent(Dashboard.this, Login.class));
+                                Intent intent = new Intent(Dashboard.this, Login.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
                                 finish(); // Finish the current activity to prevent going back with the back button
                             }
                         })
@@ -54,7 +56,8 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                startActivity(new Intent(Dashboard.this, Transactions.class));
+                Intent intent = new Intent(Dashboard.this, Transactions.class);
+                startActivity(intent);
 
             }
         });
@@ -62,7 +65,8 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                startActivity(new Intent(Dashboard.this, Shop_details.class));
+                Intent intent = new Intent(Dashboard.this, Shop_details.class);
+                startActivity(intent);
 
             }
         });
@@ -70,7 +74,8 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                startActivity(new Intent(Dashboard.this, Update_location.class));
+                Intent intent = new Intent(Dashboard.this, Update_location.class);
+                startActivity(intent);
 
             }
         });
@@ -78,11 +83,13 @@ public class Dashboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                startActivity(new Intent(Dashboard.this, Change_password.class));
+                Intent intent = new Intent(Dashboard.this, Change_password.class);
+                startActivity(intent);
 
             }
         });
     }
+
 
     @Override
     protected void onPause() {

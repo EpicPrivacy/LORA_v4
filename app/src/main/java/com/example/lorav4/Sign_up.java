@@ -61,6 +61,8 @@ public class Sign_up extends AppCompatActivity {
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private Spinner userSpinner;
+    private boolean locationObtained = false;
+
 
 
 
@@ -108,11 +110,16 @@ public class Sign_up extends AppCompatActivity {
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
+                if (locationResult == null || locationObtained) {
                     return;
                 }
+
                 for (Location location : locationResult.getLocations()) {
                     updateMap(new LatLng(location.getLatitude(), location.getLongitude()));
+                    locationObtained = true;
+
+                    // Stop location updates after obtaining the location
+                    stopLocationUpdates();
                 }
             }
         };

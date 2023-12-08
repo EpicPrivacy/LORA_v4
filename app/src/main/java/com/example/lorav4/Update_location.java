@@ -58,7 +58,7 @@ public class Update_location extends AppCompatActivity implements OnMapReadyCall
     private GoogleMap map;
     private SearchView searchView;
     private List<LatLng> waypoints = new ArrayList<>();
-    private static final int REQUEST_LOCATION_PERMISSION = 1;
+    public static final int REQUEST_LOCATION_PERMISSION = 1;
     private FusedLocationProviderClient fusedLocationClient;
 
     private Polyline currentPolyline;
