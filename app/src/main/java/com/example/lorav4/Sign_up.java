@@ -9,9 +9,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -58,6 +60,7 @@ public class Sign_up extends AppCompatActivity {
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
+    private Spinner userSpinner;
 
 
 
@@ -77,6 +80,17 @@ public class Sign_up extends AppCompatActivity {
         m_number = findViewById(R.id.m_number);
         password = findViewById(R.id.password);
         confirm_password = findViewById(R.id.confirm_password);
+        userSpinner = findViewById(R.id.spinner);
+
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this, R.array.user_types, android.R.layout.simple_spinner_item);
+
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Apply the adapter to the spinner
+        userSpinner.setAdapter(adapter);
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
         if (mapFragment != null) {
@@ -352,12 +366,14 @@ public class Sign_up extends AppCompatActivity {
                     // Mobile number already registered
                     m_number.setError("Mobile number already registered");
                 } else {
+
+                    String userType = userSpinner.getSelectedItem().toString();
                     // Generate a user ID (you can use a UUID or any other method)
                     String userId = UUID.randomUUID().toString();
 
 
                     // Mobile number is unique, proceed with registration
-                    Helper helper = new Helper(userId, fname, lname, mnumber, pass, selectedLatLng.latitude, selectedLatLng.longitude);
+                    Helper helper = new Helper(userId, fname, lname, mnumber, pass, selectedLatLng.latitude, selectedLatLng.longitude, userType);
                     reference.child(mnumber).setValue(helper)
                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
@@ -375,6 +391,7 @@ public class Sign_up extends AppCompatActivity {
                                         Intent intent = new Intent(Sign_up.this, Verify_otp.class);
                                         intent.putExtra("m_number", countryCodePicker.getFullNumberWithPlus());
                                         intent.putExtra("user_id", userId); // Pass user ID to the next activity
+                                        intent.putExtra("identity", userType);
                                         startActivity(intent);
                                     } else {
                                         Log.e("Registration", "Registration failed", task.getException());

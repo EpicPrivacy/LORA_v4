@@ -1,4 +1,4 @@
-package com.example.lorav4;
+package com.example.lorav4.Driver;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +14,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.lorav4.Dashboard;
+import com.example.lorav4.R;
 import com.example.lorav4.utils.AndroidUtil;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -28,7 +30,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-public class Login_verify extends AppCompatActivity {
+public class Driver_verify extends AppCompatActivity {
 
     String m_number;
     Long timeoutSeconds = 60L;
@@ -42,17 +44,16 @@ public class Login_verify extends AppCompatActivity {
     ProgressBar progressBar;
     TextView btn_resend;
     FirebaseAuth mAuth = FirebaseAuth.getInstance();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_driver_verify);
 
-        setContentView(R.layout.activity_login_verify);
 
-        otp_input = findViewById(R.id.login_otp_input);
-        btn_next = findViewById(R.id.login_btn_next);
-        progressBar = findViewById(R.id.login_progressBar);
-        btn_resend = findViewById(R.id.login_btn_resend);
+        otp_input = findViewById(R.id.driver_otp_input);
+        btn_next = findViewById(R.id.driver_btn_next);
+        progressBar = findViewById(R.id.driver_progressBar);
+        btn_resend = findViewById(R.id.driver_btn_resend);
 
         m_number = getIntent().getExtras().getString("m_number");
 
@@ -148,7 +149,7 @@ public class Login_verify extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 setInProgress(false);
                 if(task.isSuccessful()){
-                    Intent intent = new Intent(Login_verify.this,Dashboard.class);
+                    Intent intent = new Intent(Driver_verify.this, Drivers_dashboard.class);
                     intent.putExtra("m_number",m_number);
                     startActivity(intent);
                     finish();
@@ -203,5 +204,4 @@ public class Login_verify extends AppCompatActivity {
         // This method is called when the activity is being destroyed.
         // Release resources, unregister listeners, or perform cleanup tasks here.
     }
-
 }

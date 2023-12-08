@@ -24,7 +24,7 @@
         android:id="@+id/first_name"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:layout_margin="9dp"
+        android:layout_margin="7dp"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:background="@drawable/edit_text_background"
@@ -39,11 +39,11 @@
         android:id="@+id/last_name"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:layout_marginStart="9dp"
+        android:layout_marginStart="7dp"
         android:layout_marginLeft="30dp"
-        android:layout_marginEnd="9dp"
+        android:layout_marginEnd="7dp"
         android:layout_marginRight="30dp"
-        android:layout_marginBottom="9dp"
+        android:layout_marginBottom="7dp"
         android:background="@drawable/edit_text_background"
         android:ems="10"
         android:hint="Last Name"
@@ -71,7 +71,7 @@
             android:id="@+id/m_number"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_margin="9dp"
+            android:layout_margin="7dp"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:background="@drawable/edit_text_background"
@@ -104,7 +104,7 @@
         android:id="@+id/maps"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="140dp"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
@@ -127,11 +127,11 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="9dp"
+        android:layout_marginStart="7dp"
         android:layout_marginLeft="30dp"
-        android:layout_marginEnd="9dp"
+        android:layout_marginEnd="7dp"
         android:layout_marginRight="30dp"
-        android:layout_marginBottom="9dp"
+        android:layout_marginBottom="7dp"
         app:passwordToggleEnabled="true"
         tools:layout_editor_absoluteX="24dp"
         tools:layout_editor_absoluteY="435dp">
@@ -151,11 +151,11 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="9dp"
+        android:layout_marginStart="7dp"
         android:layout_marginLeft="30dp"
-        android:layout_marginEnd="9dp"
+        android:layout_marginEnd="7dp"
         android:layout_marginRight="30dp"
-        android:layout_marginBottom="9dp"
+        android:layout_marginBottom="7dp"
         app:passwordToggleEnabled="true"
         tools:layout_editor_absoluteX="24dp"
         tools:layout_editor_absoluteY="435dp">
@@ -171,6 +171,16 @@
             android:paddingStart="10dp" />
 
     </com.google.android.material.textfield.TextInputLayout>
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="7dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="7dp"
+        android:background="@drawable/edit_text_background" />
 
     <Button
         android:id="@+id/tems_condition"
@@ -189,7 +199,7 @@
         android:id="@+id/agree_checkbox"
         android:layout_width="264dp"
         android:layout_height="40dp"
-        android:layout_margin="6dp"
+        android:layout_margin="7dp"
         android:background="@drawable/edit_text_background"
         android:text="I agree to the terms and conditions"
         android:textStyle="bold" />
@@ -198,7 +208,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:layout_marginTop="9dp"
+        android:layout_marginTop="7dp"
         android:layout_marginRight="30dp"
         android:orientation="horizontal">
 

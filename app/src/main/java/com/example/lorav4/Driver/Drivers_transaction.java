@@ -1,4 +1,4 @@
-package com.example.lorav4;
+package com.example.lorav4.Driver;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -10,19 +10,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lorav4.Admin.Order;
 import com.example.lorav4.Admin.OrderAdapter;
+import com.example.lorav4.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Transactions extends AppCompatActivity{
+public class Drivers_transaction extends AppCompatActivity {
+
 
     String m_number;
 
@@ -33,11 +34,10 @@ public class Transactions extends AppCompatActivity{
 
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_transactions);
+        setContentView(R.layout.activity_drivers_transaction);
 
         // Initialize Firebase Database
         databaseReference = FirebaseDatabase.getInstance().getReference("orders");
@@ -78,45 +78,25 @@ public class Transactions extends AppCompatActivity{
     }
 
     private void loadDataFromFirebase() {
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            Query showTrans = databaseReference.orderByChild("userId").equalTo(userId);
-
-            showTrans.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        orderList.clear(); // Clear the list before adding new data
-
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            Order order = dataSnapshot.getValue(Order.class);
-                            if (order != null) {
-                                orderList.add(order);
-                            }
-                        }
-
-                        orderAdapter.notifyDataSetChanged();
-
-                        Log.d("Firebase", "Data loaded successfully. Order count: " + orderList.size());
-                    } else {
-                        Log.e("Firebase", "No Data Found");
+        databaseReference.orderByKey().addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                orderList.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Order order = dataSnapshot.getValue(Order.class);
+                    if (order != null) {
+                        orderList.add(order);
                     }
                 }
+                orderAdapter.notifyDataSetChanged();
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    // Handle database error
-                }
-            });
-        } else {
-            Log.e("Firebase", "User not signed in. Unable to load data from Firebase.");
-        }
+                Log.d("Firebase", "Data loaded successfully. Order count: " + orderList.size());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle errors
+            }
+        });
     }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        // Remove Firebase listeners here
-    }
-
 }

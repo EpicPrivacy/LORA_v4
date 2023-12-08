@@ -113,6 +113,7 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
     }
 
     private void populateSpinner() {
+
         firebaseDBHelper.getAllMobileNumbers(new FirebaseDBHelper.DataCallback() {
             @Override
             public void onDataReceived(DataSnapshot dataSnapshot) {
@@ -122,10 +123,11 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
 
                 for (DataSnapshot snapshot : data) {
                     // Assuming "mobile_number" is the key in your database
-                    String mobileNumber = snapshot.child("mobileNumber").getValue(String.class);
+                    String firstName = snapshot.child("firstName").getValue(String.class);
+                    String lastName = snapshot.child("lastName").getValue(String.class);
+                    String mobileNumber = snapshot.child("firstName").getValue(String.class) + " " + snapshot.child("lastName").getValue(String.class);
 
-                    // Exclude a specific user (modify the condition accordingly)
-                    if (mobileNumber != null && !mobileNumber.equals("09000000000")) {
+                    if (mobileNumber != null && !(firstName.equals("Admin") && lastName.equals("Amin"))) {
                         mobileNumbers.add(mobileNumber);
                     }
                 }

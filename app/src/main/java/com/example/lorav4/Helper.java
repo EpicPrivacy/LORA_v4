@@ -8,6 +8,7 @@ public class Helper {
     private String password;
     private double latitude;
     private double longitude;
+    private String userType;
 
 
     // Empty constructor for Firebase
@@ -16,7 +17,7 @@ public class Helper {
 
 
     // Constructor with parameters
-    public Helper(String userId, String firstName, String lastName, String mobileNumber, String password, double latitude, double longitude) {
+    public Helper(String userId, String firstName, String lastName, String mobileNumber, String password, double latitude, double longitude, String userType) {
         // Initialize variables
         this.userId = userId;
         this.firstName = firstName;
@@ -25,10 +26,17 @@ public class Helper {
         this.password = password;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.userType = userType;
     }
 
+    public String getUserType() {
+        return userType;
+    }
 
-    // Getters and setters for all fields
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+// Getters and setters for all fields
 
     public String getUserId() {
         return userId;
