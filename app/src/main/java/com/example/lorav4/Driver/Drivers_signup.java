@@ -1,36 +1,21 @@
-package com.example.lorav4;
+package com.example.lorav4.Driver;
 
-import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.example.lorav4.R;
+import com.example.lorav4.Verify_otp;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -43,7 +28,7 @@ import com.hbb20.CountryCodePicker;
 import java.util.UUID;
 
 
-public class Sign_up extends AppCompatActivity {
+public class Drivers_signup extends AppCompatActivity {
 
     private CountryCodePicker countryCodePicker;
     private EditText first_name, last_name, m_number, password, confirm_password;
@@ -52,65 +37,24 @@ public class Sign_up extends AppCompatActivity {
     private FirebaseDatabase DB;
     private DatabaseReference reference;
 
-    private GoogleMap mMap;
-    private SupportMapFragment mapFragment;
-    private LatLng selectedLatLng;
-
-    private FusedLocationProviderClient fusedLocationProviderClient;
-    private LocationRequest locationRequest;
-    private LocationCallback locationCallback;
-    private Spinner userSpinner;
-    private boolean locationObtained = false;
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_up);
+        setContentView(R.layout.activity_drivers_signup);
 
-        countryCodePicker = findViewById(R.id.login_countrycode);
-        clear = findViewById(R.id.clear);
-        submit = findViewById(R.id.submit);
-        agreeCheckbox = findViewById(R.id.agree_checkbox);
-        termsConditionButton = findViewById(R.id.tems_condition);
+        countryCodePicker = findViewById(R.id.Drivers_countrycode);
+        clear = findViewById(R.id.Drivers_clear);
+        submit = findViewById(R.id.Drivers_submit);
+        agreeCheckbox = findViewById(R.id.Drivers_agree_checkbox);
+        termsConditionButton = findViewById(R.id.Drivers_tems_condition);
 
-        first_name = findViewById(R.id.first_name);
-        last_name = findViewById(R.id.last_name);
-        m_number = findViewById(R.id.m_number);
-        password = findViewById(R.id.password);
-        confirm_password = findViewById(R.id.confirm_password);
+        first_name = findViewById(R.id.Drivers_first_name);
+        last_name = findViewById(R.id.Drivers_last_name);
+        m_number = findViewById(R.id.Drivers_m_number);
+        password = findViewById(R.id.Drivers_password);
+        confirm_password = findViewById(R.id.Drivers_confirm_password);
 
-        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.maps);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this::onMapReady);
-        }
-
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-        // Create a location request
-        locationRequest = new LocationRequest();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(10000); // 10 seconds
-
-        // Create a location callback
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null || locationObtained) {
-                    return;
-                }
-
-                for (Location location : locationResult.getLocations()) {
-                    updateMap(new LatLng(location.getLatitude(), location.getLongitude()));
-                    locationObtained = true;
-
-                    // Stop location updates after obtaining the location
-                    stopLocationUpdates();
-                }
-            }
-        };
 
         termsConditionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -140,71 +84,12 @@ public class Sign_up extends AppCompatActivity {
                         register();
                     }
                 } else {
-                    Toast.makeText(Sign_up.this, "Please agree to the terms and conditions", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Drivers_signup.this, "Please agree to the terms and conditions", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                addMarkerToMap(latLng);
-                selectedLatLng = latLng;
-            }
-        });
-
-        // Check location permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                startLocationUpdates();
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        1);
-            }
-        } else {
-            startLocationUpdates();
-        }
-    }
-
-    private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
-    }
-    private void stopLocationUpdates() {
-        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
-    }
-
-    private void addMarkerToMap(LatLng latLng) {
-        mMap.clear(); // Clear existing markers
-
-        MarkerOptions markerOptions = new MarkerOptions()
-                .position(latLng)
-                .title("Selected Location");
-        mMap.addMarker(markerOptions);
-
-        selectedLatLng = latLng;
-    }
-
-    private void updateMap(LatLng latLng) {
-        mMap.clear();
-        addMarkerToMap(latLng);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-    }
     private void showTermsAndConditionsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Terms and Conditions");
@@ -342,7 +227,7 @@ public class Sign_up extends AppCompatActivity {
 
     public void register() {
         if (!validateFirstName() || !validateLastName() || !validateMNumber() ||
-                 !validatePassword() || !validateConfirmPassword()) {
+                !validatePassword() || !validateConfirmPassword()) {
             return;
         }
 
@@ -362,13 +247,13 @@ public class Sign_up extends AppCompatActivity {
                     m_number.setError("Mobile number already registered");
                 } else {
 
-                    String userType = "Customer";
+                    String userType = "Driver";
                     // Generate a user ID (you can use a UUID or any other method)
                     String userId = UUID.randomUUID().toString();
 
 
                     // Mobile number is unique, proceed with registration
-                    Helper helper = new Helper(userId, fname, lname, mnumber, pass, selectedLatLng.latitude, selectedLatLng.longitude, userType);
+                    Drivers_helper helper = new Drivers_helper(userId, fname, lname, mnumber, pass, userType);
                     reference.child(mnumber).setValue(helper)
                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
@@ -383,7 +268,7 @@ public class Sign_up extends AppCompatActivity {
                                         }
 
                                         // Start OTP verification
-                                        Intent intent = new Intent(Sign_up.this, Verify_otp.class);
+                                        Intent intent = new Intent(Drivers_signup.this, Verify_otp.class);
                                         intent.putExtra("m_number", countryCodePicker.getFullNumberWithPlus());
                                         intent.putExtra("user_id", userId); // Pass user ID to the next activity
                                         intent.putExtra("identity", userType);
@@ -408,7 +293,6 @@ public class Sign_up extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        stopLocationUpdates();
     }
 
     @Override

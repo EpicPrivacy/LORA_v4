@@ -24,6 +24,15 @@
         android:theme="@style/Theme.LORAV4"
         tools:targetApi="31">
         <activity
+            android:name=".Admin.Admin_dashboard"
+            android:exported="false" />
+        <activity
+            android:name=".Driver.Drivers_signup"
+            android:exported="false" />
+        <activity
+            android:name=".Driver.MainActivity"
+            android:exported="false" />
+        <activity
             android:name=".Driver.Drivers_track_location"
             android:exported="false" />
         <activity

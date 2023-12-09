@@ -123,11 +123,12 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
 
                 for (DataSnapshot snapshot : data) {
                     // Assuming "mobile_number" is the key in your database
+                    String userType = snapshot.child("userType").getValue(String.class);
                     String firstName = snapshot.child("firstName").getValue(String.class);
                     String lastName = snapshot.child("lastName").getValue(String.class);
-                    String mobileNumber = snapshot.child("firstName").getValue(String.class) + " " + snapshot.child("lastName").getValue(String.class);
+                    String mobileNumber = firstName + " " + lastName;
 
-                    if (mobileNumber != null && !(firstName.equals("Super") && lastName.equals("Admin"))) {
+                    if (mobileNumber != null && !isExcludedUser(userType)) {
                         mobileNumbers.add(mobileNumber);
                     }
                 }
@@ -151,7 +152,7 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
                         if (selectedSpinnerUserId != null && selectedSpinnerUserId.equals("09000000000")) {
                             // Handle the case where the selected user ID is a specific value
                             // You can update this condition based on your logic
-                        } else {
+                        } else if (!isExcludedUser(selectedSpinnerUserId)) {
                             // Continue with your logic
                             loadDataFromFirebase();
                         }
@@ -165,6 +166,11 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
 
             }
         });
+    }
+    private boolean isExcludedUser(String userTypes) {
+        // Add your logic here to determine if the user should be excluded
+        // For example, if "Driver" or "Admin" user types should be excluded
+        return userTypes != null && (userTypes.equals("Driver") || userTypes.equals("Admin"));
     }
 
     private void showOptionsDialog(Order order) {

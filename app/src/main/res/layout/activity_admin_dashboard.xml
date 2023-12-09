@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="#face2f"
+    tools:context=".Admin.Admin_dashboard">
+
+
+    <Button
+        android:id="@+id/Admin_btn_logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_margin="30dp"
+        android:background="@drawable/button_background"
+        android:textColor="#ffff"
+        android:text="Logout" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/bungee"
+            android:text="HELLO THERE WELCOME TO LORA"
+            android:textColor="#000000"
+            android:textSize="34sp" />
+
+        <Button
+            android:id="@+id/Admin_btn_transaction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:background="@drawable/button_background"
+            android:textColor="#ffff"
+            android:text="Transactions" />
+
+        <Button
+            android:id="@+id/Admin_btn_drivers_signup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:background="@drawable/button_background"
+            android:textColor="#ffff"
+            android:text="Drivers_Sign_Up" />
+
+        <Button
+            android:id="@+id/Admin_btn_update_loc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:background="@drawable/button_background"
+            android:text="Track Location"
+            android:textColor="#ffff" />
+
+        <Button
+            android:id="@+id/Admin_btn_changePass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:background="@drawable/button_background"
+            android:textColor="#ffff"
+            android:text="Change Password" />
+    </LinearLayout>
+
+</LinearLayout>

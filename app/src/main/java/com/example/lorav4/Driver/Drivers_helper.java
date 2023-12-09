@@ -1,35 +1,26 @@
-package com.example.lorav4.Admin;
+package com.example.lorav4.Driver;
 
-public class Order {
-    private String orderId;
+public class Drivers_helper {
     private String userId;
     private String firstName;
     private String lastName;
     private String mobileNumber;
-    private String address;
+    private String password;
+    private String userType;
 
-    // Default no-argument constructor required for Firebase
-    public Order() {
-        // Default constructor required for calls to DataSnapshot.getValue(Order.class)
+
+    // Empty constructor for Firebase
+    public Drivers_helper() {
     }
-
-    public Order(String orderId, String userId, String firstName, String lastName, String mobileNumber, String address) {
-        this.orderId = orderId;
+    // Constructor with parameters
+    public Drivers_helper(String userId, String firstName, String lastName, String mobileNumber, String password, String userType) {
+        // Initialize variables
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.mobileNumber = mobileNumber;
-        this.address = address;
-    }
-
-    // Getter and setter methods go here
-
-    public String getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
+        this.password = password;
+        this.userType = userType;
     }
 
     public String getUserId() {
@@ -64,11 +55,20 @@ public class Order {
         this.mobileNumber = mobileNumber;
     }
 
-    public String getAddress() {
-        return address;
+    public String getPassword() {
+        return password;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setPassword(String password) {
+        this.password = password;
     }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
 }

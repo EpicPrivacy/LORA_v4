@@ -7,7 +7,7 @@
     android:background="#face2f"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".Sign_up">
+    tools:context=".Driver.Drivers_signup">
 
     <TextView
         android:id="@+id/textView"
@@ -21,7 +21,7 @@
         android:textStyle="bold" />
 
     <EditText
-        android:id="@+id/first_name"
+        android:id="@+id/Drivers_first_name"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_margin="7dp"
@@ -36,7 +36,7 @@
         tools:layout_editor_absoluteX="24dp" />
 
     <EditText
-        android:id="@+id/last_name"
+        android:id="@+id/Drivers_last_name"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_marginStart="7dp"
@@ -59,7 +59,7 @@
         android:orientation="horizontal">
 
         <com.hbb20.CountryCodePicker
-            android:id="@+id/login_countrycode"
+            android:id="@+id/Drivers_countrycode"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_marginLeft="15dp"
@@ -68,7 +68,7 @@
             app:ccp_showNameCode="false" />
 
         <EditText
-            android:id="@+id/m_number"
+            android:id="@+id/Drivers_m_number"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_margin="7dp"
@@ -86,31 +86,6 @@
 
     </LinearLayout>
 
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="15dp"
-        android:layout_marginRight="15dp"
-        android:text="Delivery Location"
-        android:textColor="#000000"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        tools:layout_editor_absoluteX="27dp" />
-
-
-    <fragment
-        android:id="@+id/maps"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="140dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginBottom="8dp"
-        android:visibility="visible"
-        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/textView3"
@@ -137,7 +112,7 @@
         tools:layout_editor_absoluteY="435dp">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/password"
+            android:id="@+id/Drivers_password"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:background="@drawable/edit_text_background"
@@ -161,7 +136,7 @@
         tools:layout_editor_absoluteY="435dp">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/confirm_password"
+            android:id="@+id/Drivers_confirm_password"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:background="@drawable/edit_text_background"
@@ -173,7 +148,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
-        android:id="@+id/tems_condition"
+        android:id="@+id/Drivers_tems_condition"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="30dp"
@@ -186,7 +161,7 @@
         android:textColorLink="#FFFFFF" />
 
     <CheckBox
-        android:id="@+id/agree_checkbox"
+        android:id="@+id/Drivers_agree_checkbox"
         android:layout_width="264dp"
         android:layout_height="40dp"
         android:layout_margin="7dp"
@@ -203,7 +178,7 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/clear"
+            android:id="@+id/Drivers_clear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
@@ -212,7 +187,7 @@
             android:textColor="#ffff" />
 
         <Button
-            android:id="@+id/submit"
+            android:id="@+id/Drivers_submit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/button_background"

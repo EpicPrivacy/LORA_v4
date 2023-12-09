@@ -3,16 +3,14 @@ package com.example.lorav4;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.lorav4.Admin.Admin_transaction;
+import com.example.lorav4.Admin.Admin_dashboard;
 import com.example.lorav4.Driver.Driver_verify;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -43,17 +41,7 @@ public class Login extends AppCompatActivity {
         password2 = findViewById(R.id.password2);
 
         mAuth = FirebaseAuth.getInstance();
-        userSpinner2 = findViewById(R.id.spinneruser);
 
-        // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this, R.array.user_types, android.R.layout.simple_spinner_item);
-
-        // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        // Apply the adapter to the spinner
-        userSpinner2.setAdapter(adapter);
 
         btn_forgot.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,9 +147,6 @@ public class Login extends AppCompatActivity {
                             String userType = userSnapshot.child("userType").getValue(String.class);
 
 
-                                String selectedUserType = userSpinner2.getSelectedItem().toString();
-
-                                if (userTypeFromDB.equals(selectedUserType)) {
                                     // User types match, proceed to the corresponding activity
                                     if (userTypeFromDB.equals("Customer")) {
                                         Intent intent = new Intent(Login.this, Login_verify.class);
@@ -180,7 +165,7 @@ public class Login extends AppCompatActivity {
                                         intent.putExtra("userType", userType);
                                         startActivity(intent);
                                     }else if (userTypeFromDB.equals("Admin")) {
-                                        Intent intent = new Intent(Login.this, Admin_transaction.class);
+                                        Intent intent = new Intent(Login.this, Admin_dashboard.class);
                                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                         String formatNum = reg_number.getText().toString().substring(1).trim();
                                         String countryCode = "+63" + formatNum;
@@ -188,12 +173,6 @@ public class Login extends AppCompatActivity {
                                         intent.putExtra("userType", userType);
                                         startActivity(intent);
                                     }
-                                } else {
-                                    // User types don't match
-                                    // You can show an error message or handle it as needed
-                                    // For example, you can display a Toast message:
-                                    Toast.makeText(Login.this, "Selected user type does not match", Toast.LENGTH_SHORT).show();
-                                }
                             }
 
 
