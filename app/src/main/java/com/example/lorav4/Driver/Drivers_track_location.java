@@ -1,20 +1,28 @@
 package com.example.lorav4.Driver;
 
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.lorav4.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,6 +36,11 @@ import java.util.List;
 public class Drivers_track_location extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap map;
+    private LocationManager locationManager;
+    private LocationListener locationListener;
+    private Marker currentLocationMarker;
+    private List<LatLng> waypoints = new ArrayList<>();
+    private Polyline routePolyline;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,13 +51,22 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        // Check and request location permission if not granted
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        } else {
+            startLocationUpdates();
+        }
+
         calculateAndDrawRoutes();
     }
 
     public void onMapReady(@NonNull GoogleMap googleMap) {
         map = googleMap;
 
-        // Replace "your_node" with the actual node where your location data is stored in Firebase
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("LORA");
 
         databaseReference.addValueEventListener(new ValueEventListener() {
@@ -53,22 +75,24 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                 map.clear(); // Clear existing markers on the map
 
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    // Assuming your data structure has "latitude" and "longitude" fields
                     Double latitude = dataSnapshot.child("latitude").getValue(Double.class);
                     Double longitude = dataSnapshot.child("longitude").getValue(Double.class);
                     String firstName = dataSnapshot.child("firstName").getValue(String.class);
                     String lastName = dataSnapshot.child("lastName").getValue(String.class);
-                    String mobileNumber = firstName + " " + lastName;
 
                     if (latitude != null && longitude != null && firstName != null && lastName != null
                             && !firstName.equalsIgnoreCase("super") && !lastName.equalsIgnoreCase("admin")) {
                         LatLng location = new LatLng(latitude, longitude);
                         map.addMarker(new MarkerOptions().position(location).title(firstName + " " + lastName));
-
-                        // Optionally, move the camera to focus on the markers
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 10));
                     }
                 }
+
+                if (!waypoints.isEmpty()) {
+                    LatLng lastLocation = waypoints.get(waypoints.size() - 1);
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(lastLocation, 10));
+                }
+
+                getLastKnownLocation();
             }
 
             @Override
@@ -77,15 +101,64 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
             }
         });
     }
-    private void calculateAndDrawRoutes() {
-        // Replace this with your list of waypoints
-        List<LatLng> waypoints = new ArrayList<>();
 
-        // Get the last known location from the Firebase data
+    private void getLastKnownLocation() {
+        try {
+            // Get the last known location from the LocationManager
+            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (lastKnownLocation != null) {
+                LatLng currentLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+                updateCurrentLocationMarker(currentLocation);
+            }
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+    private void startLocationUpdates() {
+        try {
+            locationListener = new LocationListener() {
+                @Override
+                public void onLocationChanged(Location location) {
+                    if (location != null) {
+                        // Update the map with the new location using a custom marker icon
+                        LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                        updateCurrentLocationMarker(currentLocation);
+                    }
+                }
+
+                @Override
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+                }
+
+                @Override
+                public void onProviderEnabled(String provider) {
+                }
+
+                @Override
+                public void onProviderDisabled(String provider) {
+                }
+            };
+
+            // Request location updates from the LocationManager
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 0, locationListener);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startLocationUpdates();
+        }
+    }
+    private void calculateAndDrawRoutes() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("LORA");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                waypoints.clear(); // Clear existing waypoints
+
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Double latitude = dataSnapshot.child("latitude").getValue(Double.class);
                     Double longitude = dataSnapshot.child("longitude").getValue(Double.class);
@@ -113,12 +186,8 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                             waypoints.add(location);
                         }
                     }
-
-                    // Apply the greedy algorithm to optimize the order of waypoints
-                    List<LatLng> optimizedWaypoints = applyGreedyAlgorithm(waypoints);
-
-                    // Draw the route using polylines
-                    getDirections(optimizedWaypoints);
+                    // Draw the route
+                    drawRoute();
                 }
             }
 
@@ -129,79 +198,50 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
         });
     }
 
-    private float getDistance(LatLng point1, LatLng point2) {
-        Location location1 = new Location("point1");
-        location1.setLatitude(point1.latitude);
-        location1.setLongitude(point1.longitude);
-
-        Location location2 = new Location("point2");
-        location2.setLatitude(point2.latitude);
-        location2.setLongitude(point2.longitude);
-
-        return location1.distanceTo(location2);
-    }
-
-
-    private List<LatLng> applyGreedyAlgorithm(List<LatLng> waypoints) {
-        if (waypoints.size() >= 2) {
-            List<LatLng> optimizedWaypoints = new ArrayList<>();
-            LatLng currentLocation = waypoints.get(0);
-            optimizedWaypoints.add(currentLocation);
-
-            while (waypoints.size() > 1) {
-                int minIndex = 1;
-                float minDistance = Float.MAX_VALUE; // Change to float
-
-                for (int i = 1; i < waypoints.size(); i++) {
-                    float distance = getDistance(currentLocation, waypoints.get(i));
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        minIndex = i;
-                    }
-                }
-
-                currentLocation = waypoints.remove(minIndex);
-                optimizedWaypoints.add(currentLocation);
-            }
-            return optimizedWaypoints;
+    private void updateCurrentLocationMarker(LatLng currentLocation) {
+        if (currentLocationMarker != null) {
+            // Update the existing marker for the current location
+            currentLocationMarker.setPosition(currentLocation);
         } else {
-            return waypoints;
+            // Create a new marker for the current location
+            currentLocationMarker = map.addMarker(new MarkerOptions().position(currentLocation).title("You are here").icon(BitmapDescriptorFactory.fromResource(R.drawable.gps_marker)));
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+        }
+        if (!waypoints.isEmpty()) {
+            drawRoute();
         }
     }
 
-    private void getDirections(List<LatLng> waypoints) {
-        // Draw polylines for different paths
-        for (int i = 0; i < waypoints.size() - 1; i++) {
-            LatLng origin = waypoints.get(i);
-            LatLng destination = waypoints.get(i + 1);
-
-            // Draw a polyline between each pair of waypoints
-            PolylineOptions polylineOptions = new PolylineOptions()
-                    .add(origin, destination)
-                    .width(5)
-                    .color(Color.BLUE);
-            map.addPolyline(polylineOptions);
-
-            // Optionally, you can add markers at the origin and destination
-            map.addMarker(new MarkerOptions().position(origin).title("Start"));
-            map.addMarker(new MarkerOptions().position(destination).title("End"));
+    private void drawRoute() {
+        // Draw the polyline route
+        if (routePolyline != null) {
+            routePolyline.remove(); // Remove existing polyline
         }
+
+        PolylineOptions polylineOptions = new PolylineOptions()
+                .addAll(waypoints)
+                .color(Color.BLUE)
+                .width(5);
+        routePolyline = map.addPolyline(polylineOptions);
     }
-
-
-
 
     @Override
     protected void onPause() {
         super.onPause();
-        // This method is called when the activity is no longer in the foreground.
-        // You might want to stop ongoing processes or resources here.
+        stopLocationUpdates();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // This method is called when the activity is being destroyed.
-        // Release resources, unregister listeners, or perform cleanup tasks here.
+        stopLocationUpdates();
     }
+
+    private void stopLocationUpdates() {
+        if (locationListener != null) {
+            // Remove location updates from the LocationManager
+            locationManager.removeUpdates((android.location.LocationListener) locationListener);
+        }
+    }
+
 }

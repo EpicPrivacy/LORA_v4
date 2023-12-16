@@ -12,35 +12,35 @@
 
 
     <TextView
-    android:id="@+id/textViewOrderId"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Order ID: "
-    android:textStyle="bold" />
+        android:id="@+id/textViewOrderId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Order ID: "
+        android:textStyle="bold" />
 
     <TextView
-    android:id="@+id/textViewFirstName"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="First Name: " />
+        android:id="@+id/textViewFirstName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="First Name: " />
 
     <TextView
-    android:id="@+id/textViewLastName"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Last Name: " />
+        android:id="@+id/textViewLastName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Last Name: " />
 
     <TextView
-    android:id="@+id/textViewMobileNumber"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Mobile Number: " />
+        android:id="@+id/textViewMobileNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mobile Number: " />
 
 
     <TextView
-    android:id="@+id/textViewAddress"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Address: " />
+        android:id="@+id/textViewAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Address: " />
 
-    </LinearLayout>
+</LinearLayout>

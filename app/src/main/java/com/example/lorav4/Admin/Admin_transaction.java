@@ -48,6 +48,9 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
     private FirebaseUser currentUser;
     private String userId;
 
+    private double selectedUserLatitude;
+    private double selectedUserLongitude;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,11 +67,11 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
         userId = currentUser != null ? currentUser.getUid() : null;
 
         // Initialize UI components
-        editTextFirstName = findViewById(R.id.editTextFirstName);
-        editTextLastName = findViewById(R.id.editTextLastName);
-        editTextMobileNumber = findViewById(R.id.editTextMobileNumber);
-        editTextAddress = findViewById(R.id.editTextAddress);
-        btnAddUpdateToFirebase = findViewById(R.id.btnAddUpdateToFirebase);
+        editTextFirstName = findViewById(R.id.order_name);
+        editTextLastName = findViewById(R.id.order_type);
+        editTextMobileNumber = findViewById(R.id.order_count);
+        editTextAddress = findViewById(R.id.order_amount);
+        btnAddUpdateToFirebase = findViewById(R.id.btn_Add);
 
         // Initialize RecyclerView
         recyclerView = findViewById(R.id.recyclerView);
@@ -126,10 +129,12 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
                     String userType = snapshot.child("userType").getValue(String.class);
                     String firstName = snapshot.child("firstName").getValue(String.class);
                     String lastName = snapshot.child("lastName").getValue(String.class);
-                    String mobileNumber = firstName + " " + lastName;
+                    String userId = snapshot.child("userId").getValue(String.class);
+                    String displayName = firstName + " " + lastName;
+                    Log.d("Firebase", "Populating spinner with user: " + displayName);
 
-                    if (mobileNumber != null && !isExcludedUser(userType)) {
-                        mobileNumbers.add(mobileNumber);
+                    if (displayName != null && !isExcludedUser(userType)) {
+                        mobileNumbers.add(displayName);
                     }
                 }
 
@@ -149,13 +154,14 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
                     public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                         // Get the selected user ID directly from the spinner item
                         selectedSpinnerUserId = (String) parentView.getSelectedItem();
-                        if (selectedSpinnerUserId != null && selectedSpinnerUserId.equals("09000000000")) {
-                            // Handle the case where the selected user ID is a specific value
-                            // You can update this condition based on your logic
-                        } else if (!isExcludedUser(selectedSpinnerUserId)) {
+                        Log.d("Firebase", "Selected user ID from spinner: " + selectedSpinnerUserId);
+                        String extractedUserId = getUserIdFromSelectedItem(selectedSpinnerUserId);
+                        if (extractedUserId != null && !isExcludedUser(extractedUserId)) {
                             // Continue with your logic
                             loadDataFromFirebase();
                         }
+
+
                     }
 
                     @Override
@@ -167,6 +173,15 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
             }
         });
     }
+    private String getUserIdFromSelectedItem(String selectedItem) {
+        // Split the selected item and extract the user ID
+        String[] parts = selectedItem.split(" ");
+        if (parts.length > 0) {
+            return parts[parts.length - 1];
+        }
+        return null;
+    }
+
     private boolean isExcludedUser(String userTypes) {
         // Add your logic here to determine if the user should be excluded
         // For example, if "Driver" or "Admin" user types should be excluded
@@ -203,10 +218,10 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
         EditText editTextAddress = view.findViewById(R.id.editTextUpdateAddress);
 
         // Set initial values based on the existing order
-        editTextFirstName.setText(order.getFirstName());
-        editTextLastName.setText(order.getLastName());
-        editTextMobileNumber.setText(order.getMobileNumber());
-        editTextAddress.setText(order.getAddress());
+        editTextFirstName.setText(order.getOrder_name());
+        editTextLastName.setText(order.getOrder_type());
+        editTextMobileNumber.setText(order.getOrder_count());
+        editTextAddress.setText(order.getOrder_amount());
 
         builder.setView(view);
 
@@ -275,22 +290,22 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
 
     private void addOrUpdateToFirebase() {
         // Get input values
-        String firstName = editTextFirstName.getText().toString().trim();
-        String lastName = editTextLastName.getText().toString().trim();
-        String mobileNumber = editTextMobileNumber.getText().toString().trim();
-        String address = editTextAddress.getText().toString().trim();
+        String order_name = editTextFirstName.getText().toString().trim();
+        String order_type = editTextLastName.getText().toString().trim();
+        String order_count = editTextMobileNumber.getText().toString().trim();
+        String order_amount = editTextAddress.getText().toString().trim();
 
         // Validate input
-        if (isValidInput(firstName, lastName, mobileNumber, address)) {
+        if (isValidInput(order_name, order_type, order_count, order_amount)) {
             // Check if the order already exists (based on some condition, e.g., mobile number)
-            boolean orderExists = checkOrderExists(mobileNumber);
+            boolean orderExists = checkOrderExists(order_count);
 
             if (orderExists) {
                 // Update existing order
-                updateOrderInFirebase(firstName, lastName, mobileNumber, address);
+                updateOrderInFirebase(order_name, order_type, order_count, order_amount);
             } else {
                 // Add new order
-                addOrderToFirebase(firstName, lastName, mobileNumber, address);
+                addOrderToFirebase(order_name, order_type, order_count, order_amount);
             }
         } else {
             // Show an error message or handle invalid input
@@ -298,53 +313,104 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
         }
     }
 
-    private boolean isValidInput(String firstName, String lastName, String mobileNumber, String address) {
-        return !firstName.isEmpty() && !lastName.isEmpty() && !mobileNumber.isEmpty() && !address.isEmpty();
+    private boolean isValidInput(String order_name, String order_type, String order_count, String order_amount) {
+        return !order_name.isEmpty() && !order_type.isEmpty() && !order_count.isEmpty() && !order_amount.isEmpty();
     }
 
-    private boolean checkOrderExists(String mobileNumber) {
+    private boolean checkOrderExists(String order_count) {
         // Check if an order with the given mobile number already exists in the list
         for (Order order : orderList) {
-            if (order.getMobileNumber().equals(mobileNumber)) {
+            if (order_count != null && order_count.equals(order.getOrder_count())) {
                 return true;
             }
         }
         return false;
     }
 
-    private void addOrderToFirebase(String firstName, String lastName, String mobileNumber, String address) {
-        // Check if the order already exists based on the address
-        boolean orderExists = checkOrderExists(address);
 
-        if (!orderExists) {
-            // The order does not exist, add a new order
-            String orderId = databaseReference.push().getKey();
-            Order order = new Order(orderId, userId, firstName, lastName, mobileNumber, address);
-            databaseReference.child(orderId).setValue(order)
-                    .addOnSuccessListener(aVoid -> {
-                        // Data added successfully
-                        // You might want to show a success message or take other actions
-                        Toast.makeText(this, "Order added successfully", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        // Handle errors
-                        // e.g., log the error or display an error message to the user
-                        Toast.makeText(this, "Error adding order to Firebase", Toast.LENGTH_SHORT).show();
-                    });
-        } else {
-            // Show a message that the order already exists
-            Toast.makeText(this, "Order with the given address already exists", Toast.LENGTH_SHORT).show();
-        }
+    private void addOrderToFirebase(String order_name, String order_type, String order_count, String order_amount) {
+
+            // Retrieve data from the "LORA" table
+            DatabaseReference loraTableRef = FirebaseDatabase.getInstance().getReference().child("LORA");
+            loraTableRef.orderByChild("mobileNumber").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    boolean userExists = false;
+                    for (DataSnapshot loraData : snapshot.getChildren()) {
+                        // Retrieve data from LORA
+                        String userType = loraData.child("Admin").getValue(String.class);
+                        String userType1 = loraData.child("Driver").getValue(String.class);
+
+                        // Check if the user should be excluded
+                        if (userType != null && userType1 != null && userType !="Admin" && userType1 !="Driver") {
+                            // User is not excluded, proceed with retrieving other data
+                            String firstName = loraData.child("firstName").getValue(String.class);
+                            String lastName = loraData.child("lastName").getValue(String.class);
+                            String mobileNumber = loraData.child("mobileNumber").getValue(String.class);
+
+                            // Retrieve latitude and longitude
+                            double latitude = loraData.child("latitude").getValue(Double.class);
+                            double longitude = loraData.child("longitude").getValue(Double.class);
+
+                            // Log the retrieved data
+                            Log.d("Firebase", "Retrieved LORA Data - FirstName: " + firstName +
+                                    ", LastName: " + lastName +
+                                    ", MobileNumber: " + mobileNumber +
+                                    ", Latitude: " + latitude +
+                                    ", Longitude: " + longitude);
+
+                            // Add a new order to the "ORDER" table with latitude and longitude
+                            addOrderToFirebaseWithLocation(firstName, lastName, mobileNumber, order_name, order_type, order_count, order_amount, latitude, longitude);
+
+                            userExists = true;
+                            break;  // Exit the loop since we found the user
+                        }
+                    }
+
+                    if (!userExists) {
+                        // Handle the case where no data is found
+                        Toast.makeText(Admin_transaction.this, "No data found in LORA for the selected user", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    // Handle errors
+                    Toast.makeText(Admin_transaction.this, "Error retrieving data from LORA", Toast.LENGTH_SHORT).show();
+                }
+            });
     }
 
 
-    private void updateOrderInFirebase(String firstName, String lastName, String mobileNumber, String address) {
+
+    private void addOrderToFirebaseWithLocation(String firstName, String lastName, String mobileNumber,
+                                                String order_name, String order_type, String order_count,
+                                                String order_amount, double latitude, double longitude) {
+        // Create a reference to the new table ("AnotherTable")
+        DatabaseReference anotherTableRef = FirebaseDatabase.getInstance().getReference("orders");
+
+        // Add a new order to the "AnotherTable" with latitude and longitude
+        String orderId = anotherTableRef.push().getKey();
+        Order order = new Order(orderId, userId, firstName, lastName, mobileNumber, order_name, order_type, order_count, order_amount, latitude, longitude);
+        anotherTableRef.child(orderId).setValue(order)
+                .addOnSuccessListener(aVoid -> {
+                    // Data added successfully to the "AnotherTable"
+                    Toast.makeText(this, "Order added successfully to AnotherTable", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    // Handle errors
+                    Toast.makeText(this, "Error adding order to AnotherTable", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
+    private void updateOrderInFirebase(String order_name, String order_type, String order_count, String order_amount) {
         // Find the existing order and update its fields
         for (Order order : orderList) {
-            if (order.getMobileNumber().equals(mobileNumber)) {
-                order.setFirstName(firstName);
-                order.setLastName(lastName);
-                order.setAddress(address);
+            if (order.getOrder_count().equals(order_count)) {
+                order.setOrder_name(order_name);
+                order.setOrder_type(order_type);
+                order.setOrder_amount(order_amount);
 
                 order.setUserId(userId);  // Set the user ID
                 databaseReference.child(order.getOrderId()).setValue(order)
@@ -362,6 +428,8 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
             }
         }
     }
+
+
 
     public void onItemClick(Order order) {
         // Handle item click, e.g., show a dialog for update/delete options

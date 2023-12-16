@@ -7,7 +7,7 @@
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".Loading_screen"
-    android:background="#face2f"
+    android:background="#1DB7AE"
     android:id="@+id/loadingLayout">
 
 
@@ -16,8 +16,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:src="@drawable/lora__2_"
-        tools:srcCompat="@drawable/lora__2_" />
+        android:src="@drawable/lora__3_"
+        tools:srcCompat="@drawable/lora__3_" />
 
     <ProgressBar
         android:id="@+id/progressBar"

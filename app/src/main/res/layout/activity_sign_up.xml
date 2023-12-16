@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#face2f"
+    android:background="#EBFCFB"
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".Sign_up">
@@ -27,7 +27,7 @@
         android:layout_margin="7dp"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
-        android:background="@drawable/edit_text_background"
+        android:background="@drawable/button_background_green2"
         android:ems="10"
         android:hint="First Name"
         android:inputType="text"
@@ -38,13 +38,13 @@
     <EditText
         android:id="@+id/last_name"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="48dp"
         android:layout_marginStart="7dp"
         android:layout_marginLeft="30dp"
         android:layout_marginEnd="7dp"
         android:layout_marginRight="30dp"
         android:layout_marginBottom="7dp"
-        android:background="@drawable/edit_text_background"
+        android:background="@drawable/button_background_green2"
         android:ems="10"
         android:hint="Last Name"
         android:inputType="text"
@@ -63,18 +63,18 @@
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_marginLeft="15dp"
-            android:background="@drawable/edit_text_background"
+            android:background="@drawable/button_background_green1"
             app:ccp_showFlag="false"
             app:ccp_showNameCode="false" />
 
         <EditText
             android:id="@+id/m_number"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_margin="7dp"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
-            android:background="@drawable/edit_text_background"
+            android:background="@drawable/button_background_green2"
             android:ems="10"
             android:hint="Mobile Number"
             android:inputType="number"
@@ -139,8 +139,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/password"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@drawable/edit_text_background"
+            android:layout_height="48dp"
+            android:background="@drawable/button_background_green2"
             android:ems="15"
             android:hint="Password"
             android:inputType="textPassword"
@@ -163,8 +163,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/confirm_password"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@drawable/edit_text_background"
+            android:layout_height="48dp"
+            android:background="@drawable/button_background_green2"
             android:ems="15"
             android:hint="Confirm Password"
             android:inputType="textPassword"
@@ -178,7 +178,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
-        android:background="@drawable/button_background"
+        android:background="@drawable/button_background_green1"
 
         android:text="Terms And Conditons"
         android:textColor="#ffff"
@@ -190,16 +190,17 @@
         android:layout_width="264dp"
         android:layout_height="40dp"
         android:layout_margin="7dp"
-        android:background="@drawable/edit_text_background"
+        android:background="@drawable/button_background_green2"
         android:text="I agree to the terms and conditions"
+        android:textColor="#05ACA3"
         android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:layout_marginTop="7dp"
-        android:layout_marginRight="30dp"
+        android:layout_gravity="end|bottom"
+        android:layout_marginEnd="30dp"
+
         android:orientation="horizontal">
 
         <Button
@@ -207,15 +208,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
-            android:background="@drawable/button_background"
+            android:background="@drawable/button_background_green1"
             android:text="Clear"
             android:textColor="#ffff" />
 
         <Button
             android:id="@+id/submit"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/button_background"
+            android:layout_height="match_parent"
+            android:background="@drawable/button_background_green1"
             android:text="Submit"
             android:textColor="#ffff" />
     </LinearLayout>

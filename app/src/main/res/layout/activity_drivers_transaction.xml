@@ -5,21 +5,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#face2f">
+    android:background="#EBFCFB">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#face2f"
+        android:background="#EBFCFB"
         android:orientation="vertical"
-        tools:context=".Driver.Drivers_transaction">
+        tools:context=".Driver.Drivers_transaction"
+        >
 
         <!-- RecyclerView to display data -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="703dp"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="16dp"
+            android:background="#EBFCFB"/>
 
 
     </LinearLayout>

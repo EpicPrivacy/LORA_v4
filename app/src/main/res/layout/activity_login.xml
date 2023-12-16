@@ -8,7 +8,7 @@
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".Login"
-    android:background="#face2f">
+    android:background="#EBFCFB">
 
     <TextView
         android:id="@+id/textView18"
@@ -19,7 +19,7 @@
         android:fontFamily="@font/bungee"
         android:gravity="center"
         android:text="Login"
-        android:textColor="#EC0000"
+        android:textColor="@color/black"
         android:textSize="40sp" />
 
     <TextView
@@ -35,7 +35,7 @@
     <EditText
         android:id="@+id/reg_number"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="48dp"
         android:layout_margin="15dp"
         android:background="@drawable/edit_text_background"
         android:ems="10"
@@ -76,7 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
         android:text="Login"
-        android:background="@drawable/button_background"
+        android:background="@drawable/button_background_green1"
         android:textColor="#ffff"/>
 
     <LinearLayout
@@ -98,9 +98,9 @@
             android:id="@+id/btn_forgot"
             android:layout_width="106dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_background"
+            android:background="@drawable/button_background_green2"
             android:text="Click here"
-            android:textColor="#ffff" />
+            android:textColor="#05ACA3" />
     </LinearLayout>
 
     <LinearLayout
@@ -113,9 +113,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="15dp"
-            android:background="@drawable/button_background"
+            android:background="@drawable/button_background_green2"
             android:text="Create new account"
-            android:textColor="#ffff" />
+            android:textColor="#05ACA3"/>
     </LinearLayout>
 
 </LinearLayout>

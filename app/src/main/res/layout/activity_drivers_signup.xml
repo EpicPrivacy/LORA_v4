@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#face2f"
+    android:background="#EBFCFB"
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".Driver.Drivers_signup">
@@ -153,7 +153,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
-        android:background="@drawable/button_background"
+        android:background="@drawable/button_background_green1"
 
         android:text="Terms And Conditons"
         android:textColor="#ffff"
@@ -182,7 +182,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"
-            android:background="@drawable/button_background"
+            android:background="@drawable/button_background_green1"
             android:text="Clear"
             android:textColor="#ffff" />
 
@@ -190,7 +190,7 @@
             android:id="@+id/Drivers_submit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_background"
+            android:background="@drawable/button_background_green1"
             android:text="Submit"
             android:textColor="#ffff" />
     </LinearLayout>

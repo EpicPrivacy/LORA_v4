@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="#face2f"
+    android:background="#EBFCFB"
     tools:context=".Admin.Admin_dashboard">
 
 
@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:layout_margin="30dp"
-        android:background="@drawable/button_background"
+        android:background="@drawable/button_background_green1"
         android:textColor="#ffff"
         android:text="Logout" />
 
@@ -43,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="15dp"
-            android:background="@drawable/button_background"
+            android:background="@drawable/button_background_green1"
             android:textColor="#ffff"
             android:text="Transactions" />
 
@@ -52,7 +52,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="15dp"
-            android:background="@drawable/button_background"
+            android:background="@drawable/button_background_green1"
             android:textColor="#ffff"
             android:text="Drivers_Sign_Up" />
 
@@ -61,7 +61,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="15dp"
-            android:background="@drawable/button_background"
+            android:background="@drawable/button_background_green1"
             android:text="Track Location"
             android:textColor="#ffff" />
 
@@ -70,7 +70,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="15dp"
-            android:background="@drawable/button_background"
+            android:background="@drawable/button_background_green1"
             android:textColor="#ffff"
             android:text="Change Password" />
     </LinearLayout>

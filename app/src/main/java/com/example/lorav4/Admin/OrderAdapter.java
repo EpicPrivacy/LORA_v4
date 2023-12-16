@@ -51,6 +51,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     }
 
 
+
     @Override
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
         Order order = orderList.get(position);
@@ -65,16 +66,16 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
         holder.orderIdTextView.setText("Order ID: " + order.getOrderId());
         holder.orderIdTextView.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.black));
 
-        holder.firstNameTextView.setText("First Name: " + order.getFirstName());
+        holder.firstNameTextView.setText("Order Name: " + order.getOrder_name());
         holder.firstNameTextView.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.black));
 
-        holder.lastNameTextView.setText("Last Name: " + order.getLastName());
+        holder.lastNameTextView.setText("Order Type: " + order.getOrder_type());
         holder.lastNameTextView.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.black));
 
-        holder.mobileNumberTextView.setText("Mobile Number: " + order.getMobileNumber());
+        holder.mobileNumberTextView.setText("Order Count: " + order.getOrder_count());
         holder.mobileNumberTextView.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.black));
 
-        holder.addressTextView.setText("Address: " + order.getAddress());
+        holder.addressTextView.setText("Amount: " + order.getOrder_amount());
         holder.addressTextView.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.black));
     }
 
@@ -102,13 +103,12 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
 
         public void bind(final Order order) {
             orderIdTextView.setText("Order ID: " + order.getOrderId());
-            firstNameTextView.setText("First Name: " + order.getFirstName());
-            lastNameTextView.setText("Last Name: " + order.getLastName());
-            mobileNumberTextView.setText("Mobile Number: " + order.getMobileNumber());
-            addressTextView.setText("Address: " + order.getAddress());
+            firstNameTextView.setText("Order Name: " + order.getOrder_name());
+            lastNameTextView.setText("Order Type: " + order.getOrder_type());
+            mobileNumberTextView.setText("Order Count: " + order.getOrder_count());
+            addressTextView.setText("Amount: " + order.getOrder_amount());
         }
     }
 
 
 }
-

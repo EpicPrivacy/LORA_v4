@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#face2f">
+    android:background="#EBFCFB">
 
     <LinearLayout
         android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#face2f"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
+        android:layout_height="match_parent"
+        android:background="#EBFCFB"
+        android:orientation="vertical"
+        tools:context=".MainActivity">
 
-    <!-- RecyclerView to display data -->
+        <!-- RecyclerView to display data -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="703dp"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="16dp"
+            android:background="#EBFCFB"/>
 
 
     </LinearLayout>
