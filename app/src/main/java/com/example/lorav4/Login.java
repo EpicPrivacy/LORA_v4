@@ -5,13 +5,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.lorav4.Admin.Admin_dashboard;
-import com.example.lorav4.Driver.Driver_verify;
+import com.example.lorav4.Driver.Drivers_dashboard;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -25,7 +25,7 @@ public class Login extends AppCompatActivity {
     EditText reg_number,password2;
     Button btn_login2,btn_forgot,btn_newAccount;
     private FirebaseAuth mAuth;
-    private Spinner userSpinner2;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +41,6 @@ public class Login extends AppCompatActivity {
         password2 = findViewById(R.id.password2);
 
         mAuth = FirebaseAuth.getInstance();
-
 
         btn_forgot.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -140,50 +139,47 @@ public class Login extends AppCompatActivity {
                         if (PasswordFromDB.equals(password2.getText().toString().trim())) {
                             reg_number.setError(null);
 
-                            String firstnameDB = userSnapshot.child("first_name").getValue(String.class);
-                            String lastnameDB = userSnapshot.child("last_name").getValue(String.class);
-                            String delivery_addDB = userSnapshot.child("delivery_add").getValue(String.class);
-
                             String userType = userSnapshot.child("userType").getValue(String.class);
-
-
-                                    // User types match, proceed to the corresponding activity
-                                    if (userTypeFromDB.equals("Customer")) {
-                                        Intent intent = new Intent(Login.this, Login_verify.class);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        String formatNum = reg_number.getText().toString().substring(1).trim();
-                                        String countryCode = "+63" + formatNum;
-                                        intent.putExtra("m_number", countryCode);
-                                        intent.putExtra("userType", userType);
-                                        startActivity(intent);
-                                    } else if (userTypeFromDB.equals("Driver")) {
-                                        Intent intent = new Intent(Login.this, Driver_verify.class);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        String formatNum = reg_number.getText().toString().substring(1).trim();
-                                        String countryCode = "+63" + formatNum;
-                                        intent.putExtra("m_number", countryCode);
-                                        intent.putExtra("userType", userType);
-                                        startActivity(intent);
-                                    }else if (userTypeFromDB.equals("Admin")) {
-                                        Intent intent = new Intent(Login.this, Admin_dashboard.class);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        String formatNum = reg_number.getText().toString().substring(1).trim();
-                                        String countryCode = "+63" + formatNum;
-                                        intent.putExtra("m_number", countryCode);
-                                        intent.putExtra("userType", userType);
-                                        startActivity(intent);
-                                    }
+                            if (userTypeFromDB.equals("Customer")) {
+                                Intent intent = new Intent(Login.this, Dashboard.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                String formatNum = reg_number.getText().toString().substring(1).trim();
+                                String countryCode = "+63" + formatNum;
+                                intent.putExtra("m_number", countryCode);
+                                intent.putExtra("userType", userType);
+                                startActivity(intent);
+                            } else if (userTypeFromDB.equals("Driver")) {
+                                Intent intent = new Intent(Login.this, Drivers_dashboard.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                String formatNum = reg_number.getText().toString().substring(1).trim();
+                                String countryCode = "+63" + formatNum;
+                                intent.putExtra("m_number", countryCode);
+                                intent.putExtra("userType", userType);
+                                startActivity(intent);
+                            } else if (userTypeFromDB.equals("Admin")) {
+                                Intent intent = new Intent(Login.this, Admin_dashboard.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                String formatNum = reg_number.getText().toString().substring(1).trim();
+                                String countryCode = "+63" + formatNum;
+                                intent.putExtra("m_number", countryCode);
+                                intent.putExtra("userType", userType);
+                                startActivity(intent);
                             }
-
-
-                            return;
+                        } else {
+                            // User types don't match
+                            // You can show an error message or handle it as needed
+                            // For example, you can display a Toast message:
+                            Toast.makeText(Login.this, "Incorrect Login Credentials", Toast.LENGTH_SHORT).show();
+                        }
                     }
+
+
                 } else {
                     reg_number.setError("User does not Exist");
                     reg_number.requestFocus();
                 }
-            }
 
+            }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
@@ -191,8 +187,6 @@ public class Login extends AppCompatActivity {
             }
         });
     }
-
-
 
     @Override
     protected void onPause() {

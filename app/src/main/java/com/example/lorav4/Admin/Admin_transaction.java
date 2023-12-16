@@ -23,6 +23,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -34,7 +35,9 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
     private Spinner spinnerUsers;
     private String selectedSpinnerUserId;
 
-    private String m_number;
+    private Double latlat, longlong;
+
+    private String m_number, contLname, contFname, contNum, contLat, contLong;
 
     private RecyclerView recyclerView;
     private OrderAdapter orderAdapter;
@@ -129,8 +132,9 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
                     String userType = snapshot.child("userType").getValue(String.class);
                     String firstName = snapshot.child("firstName").getValue(String.class);
                     String lastName = snapshot.child("lastName").getValue(String.class);
-                    String userId = snapshot.child("userId").getValue(String.class);
-                    String displayName = firstName + " " + lastName;
+                    String mNumber = snapshot.child("mobileNumber").getValue(String.class);
+
+                    String displayName = firstName + " " + lastName + "(" + mNumber + ")";
                     Log.d("Firebase", "Populating spinner with user: " + displayName);
 
                     if (displayName != null && !isExcludedUser(userType)) {
@@ -155,8 +159,18 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
                         // Get the selected user ID directly from the spinner item
                         selectedSpinnerUserId = (String) parentView.getSelectedItem();
                         Log.d("Firebase", "Selected user ID from spinner: " + selectedSpinnerUserId);
-                        String extractedUserId = getUserIdFromSelectedItem(selectedSpinnerUserId);
-                        if (extractedUserId != null && !isExcludedUser(extractedUserId)) {
+
+                        int space = selectedSpinnerUserId.lastIndexOf(' ');
+                        int numstart = selectedSpinnerUserId.lastIndexOf('(');
+                        int numend = selectedSpinnerUserId.lastIndexOf(')');
+
+                        contFname = selectedSpinnerUserId.substring(0, space);
+                        contLname = selectedSpinnerUserId.substring(space + 1, numstart);
+                        contNum = selectedSpinnerUserId.substring(numstart + 1, numend);
+
+                        getDataOfSelectedSpinner();
+
+                        if (selectedSpinnerUserId != null && !isExcludedUser(selectedSpinnerUserId)) {
                             // Continue with your logic
                             loadDataFromFirebase();
                         }
@@ -173,14 +187,39 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
             }
         });
     }
-    private String getUserIdFromSelectedItem(String selectedItem) {
-        // Split the selected item and extract the user ID
-        String[] parts = selectedItem.split(" ");
-        if (parts.length > 0) {
-            return parts[parts.length - 1];
-        }
-        return null;
+
+    private void getDataOfSelectedSpinner() {
+
+        DatabaseReference selected = FirebaseDatabase.getInstance().getReference().child("LORA");
+        Query selectedUser = selected.orderByChild("mobileNumber").equalTo(contNum);
+
+        selectedUser.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                    latlat = userSnapshot.child("latitude").getValue(double.class);
+                    longlong = userSnapshot.child("longitude").getValue(double.class);
+
+                    String showtest = "Hotdog: " + latlat;
+                    String testshow = "Buns: " + longlong;
+
+                    editTextFirstName.setText(showtest);
+                    editTextLastName.setText(testshow);
+
+
+
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle database error
+            }
+
+        });
     }
+
 
     private boolean isExcludedUser(String userTypes) {
         // Add your logic here to determine if the user should be excluded
@@ -290,10 +329,12 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
 
     private void addOrUpdateToFirebase() {
         // Get input values
+        String order_cusNum = contNum;
         String order_name = editTextFirstName.getText().toString().trim();
         String order_type = editTextLastName.getText().toString().trim();
         String order_count = editTextMobileNumber.getText().toString().trim();
         String order_amount = editTextAddress.getText().toString().trim();
+
 
         // Validate input
         if (isValidInput(order_name, order_type, order_count, order_amount)) {
@@ -305,7 +346,7 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
                 updateOrderInFirebase(order_name, order_type, order_count, order_amount);
             } else {
                 // Add new order
-                addOrderToFirebase(order_name, order_type, order_count, order_amount);
+                addOrderToFirebase(order_cusNum, order_name, order_type, order_count, order_amount);
             }
         } else {
             // Show an error message or handle invalid input
@@ -328,70 +369,25 @@ public class Admin_transaction extends AppCompatActivity implements OrderAdapter
     }
 
 
-    private void addOrderToFirebase(String order_name, String order_type, String order_count, String order_amount) {
+    private void addOrderToFirebase(String order_cusNum, String order_name, String order_type, String order_count, String order_amount) {
 
-            // Retrieve data from the "LORA" table
-            DatabaseReference loraTableRef = FirebaseDatabase.getInstance().getReference().child("LORA");
-            loraTableRef.orderByChild("mobileNumber").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    boolean userExists = false;
-                    for (DataSnapshot loraData : snapshot.getChildren()) {
-                        // Retrieve data from LORA
-                        String userType = loraData.child("Admin").getValue(String.class);
-                        String userType1 = loraData.child("Driver").getValue(String.class);
+        addOrderToFirebaseWithLocation(contFname, contLname, contNum, order_name, order_type, order_count, order_amount, latlat, longlong);
 
-                        // Check if the user should be excluded
-                        if (userType != null && userType1 != null && userType !="Admin" && userType1 !="Driver") {
-                            // User is not excluded, proceed with retrieving other data
-                            String firstName = loraData.child("firstName").getValue(String.class);
-                            String lastName = loraData.child("lastName").getValue(String.class);
-                            String mobileNumber = loraData.child("mobileNumber").getValue(String.class);
-
-                            // Retrieve latitude and longitude
-                            double latitude = loraData.child("latitude").getValue(Double.class);
-                            double longitude = loraData.child("longitude").getValue(Double.class);
-
-                            // Log the retrieved data
-                            Log.d("Firebase", "Retrieved LORA Data - FirstName: " + firstName +
-                                    ", LastName: " + lastName +
-                                    ", MobileNumber: " + mobileNumber +
-                                    ", Latitude: " + latitude +
-                                    ", Longitude: " + longitude);
-
-                            // Add a new order to the "ORDER" table with latitude and longitude
-                            addOrderToFirebaseWithLocation(firstName, lastName, mobileNumber, order_name, order_type, order_count, order_amount, latitude, longitude);
-
-                            userExists = true;
-                            break;  // Exit the loop since we found the user
-                        }
-                    }
-
-                    if (!userExists) {
-                        // Handle the case where no data is found
-                        Toast.makeText(Admin_transaction.this, "No data found in LORA for the selected user", Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    // Handle errors
-                    Toast.makeText(Admin_transaction.this, "Error retrieving data from LORA", Toast.LENGTH_SHORT).show();
-                }
-            });
     }
 
 
 
-    private void addOrderToFirebaseWithLocation(String firstName, String lastName, String mobileNumber,
+
+    private void addOrderToFirebaseWithLocation(String contFname, String contLname, String contNum,
                                                 String order_name, String order_type, String order_count,
-                                                String order_amount, double latitude, double longitude) {
+                                                String order_amount, double latlat, double longlong) {
+        String order_status = "Pending";
         // Create a reference to the new table ("AnotherTable")
         DatabaseReference anotherTableRef = FirebaseDatabase.getInstance().getReference("orders");
 
         // Add a new order to the "AnotherTable" with latitude and longitude
         String orderId = anotherTableRef.push().getKey();
-        Order order = new Order(orderId, userId, firstName, lastName, mobileNumber, order_name, order_type, order_count, order_amount, latitude, longitude);
+        Order order = new Order(orderId, userId, contFname, contLname, contNum, order_name, order_type, order_count, order_amount, latlat, longlong, order_status);
         anotherTableRef.child(orderId).setValue(order)
                 .addOnSuccessListener(aVoid -> {
                     // Data added successfully to the "AnotherTable"

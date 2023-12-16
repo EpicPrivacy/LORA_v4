@@ -1,8 +1,8 @@
 package com.example.lorav4.Driver;
 
+import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -13,7 +13,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.lorav4.R;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -24,11 +34,17 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.maps.android.PolyUtil;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +57,8 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
     private Marker currentLocationMarker;
     private List<LatLng> waypoints = new ArrayList<>();
     private Polyline routePolyline;
+    public static final int REQUEST_LOCATION_PERMISSION = 1;
+    private FusedLocationProviderClient fusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,14 +76,62 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         } else {
-            startLocationUpdates();
+            // Permission already granted
         }
 
         calculateAndDrawRoutes();
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION_PERMISSION);
+        } else {
+            requestLocationUpdates();
+            checkLocationSettings();
+        }
     }
 
     public void onMapReady(@NonNull GoogleMap googleMap) {
         map = googleMap;
+        requestLocationPermission();
+
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        double currentLatitude = location.getLatitude();
+                        double currentLongitude = location.getLongitude();
+                        LatLng currentLocation = new LatLng(currentLatitude, currentLongitude);
+
+                        // Clear existing circles and markers on the map
+                        map.clear();
+
+                        // Add a new circle for the current location with a larger radius
+                        float markerSize = getResources().getDimension(R.dimen.marker_size);
+                        currentLocationMarker = map.addMarker(new MarkerOptions()
+                                .position(currentLocation)
+                                .title("You are here")
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.gps_marker))
+                                .anchor(0.5f, 0.5f) // Center the marker on the location
+                                .flat(true)); // Keep the marker flat on the map
+                        currentLocationMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.gps_marker));
+
+
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+
+                        applyGreedyAlgorithm();
+                    }
+                });
+
+
+        map.getUiSettings().setCompassEnabled(true);
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("LORA");
 
@@ -92,7 +158,6 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                     map.moveCamera(CameraUpdateFactory.newLatLngZoom(lastLocation, 10));
                 }
 
-                getLastKnownLocation();
             }
 
             @Override
@@ -101,57 +166,117 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
             }
         });
     }
+    private void requestLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
+        } else {
 
-    private void getLastKnownLocation() {
-        try {
-            // Get the last known location from the LocationManager
-            Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (lastKnownLocation != null) {
-                LatLng currentLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-                updateCurrentLocationMarker(currentLocation);
-            }
-        } catch (SecurityException e) {
-            e.printStackTrace();
         }
     }
-    private void startLocationUpdates() {
-        try {
-            locationListener = new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    if (location != null) {
-                        // Update the map with the new location using a custom marker icon
-                        LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                        updateCurrentLocationMarker(currentLocation);
+    private void requestLocationUpdates() {
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(3000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+    }
+    private void checkLocationSettings() {
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+
+        Task<LocationSettingsResponse> task =
+                LocationServices.getSettingsClient(this)
+                        .checkLocationSettings(builder.build());
+
+        task.addOnSuccessListener(locationSettingsResponse -> requestLocationUpdates());
+
+        task.addOnFailureListener(e -> {
+            // Handle failure
+        });
+    }
+    private void applyGreedyAlgorithm() {
+        if (waypoints.size() >= 2) {
+            List<LatLng> optimizedWaypoints = new ArrayList<>();
+            LatLng currentLocation = waypoints.get(0);
+            optimizedWaypoints.add(currentLocation);
+
+            while (waypoints.size() > 1) {
+                int minIndex = 1;
+                double minDistance = Double.MAX_VALUE;
+
+                for (int i = 1; i < waypoints.size(); i++) {
+                    double distance = getDistance(currentLocation, waypoints.get(i));
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        minIndex = i;
                     }
                 }
 
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-                }
+                currentLocation = waypoints.remove(minIndex);
+                optimizedWaypoints.add(currentLocation);
+            }
 
-                @Override
-                public void onProviderEnabled(String provider) {
-                }
+            for (int i = 0; i < optimizedWaypoints.size() - 1; i++) {
+                LatLng origin = optimizedWaypoints.get(i);
+                LatLng destination = optimizedWaypoints.get(i + 1);
+                getDirections(origin, destination);
+            }
+        }
+    }
+    private double getDistance(LatLng point1, LatLng point2) {
+        return Math.sqrt(Math.pow(point1.latitude - point2.latitude, 2) +
+                Math.pow(point1.longitude - point2.longitude, 2));
+    }
+    private void getDirections(LatLng origin, LatLng destination) {
+        String apiKey = "AIzaSyCLZU8pSVc_DisAyPWTpNAYHCVlN9-8mVs";
+        String url = "https://maps.googleapis.com/maps/api/directions/json?" +
+                "origin=" + origin.latitude + "," + origin.longitude +
+                "&destination=" + destination.latitude + "," + destination.longitude +
+                "&key=" + apiKey;
 
-                @Override
-                public void onProviderDisabled(String provider) {
-                }
-            };
+        RequestQueue queue = Volley.newRequestQueue(this);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+                this::handleDirectionsResponse,
+                this::handleDirectionsError);
 
-            // Request location updates from the LocationManager
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 0, locationListener);
-        } catch (SecurityException e) {
+        queue.add(request);
+    }
+    private void handleDirectionsResponse(JSONObject response) {
+        try {
+            // Clear existing polylines on the map
+
+
+            JSONArray routes = response.getJSONArray("routes");
+            for (int i = 0; i < routes.length(); i++) {
+                JSONObject route = routes.getJSONObject(i);
+                JSONObject overviewPolyline = route.getJSONObject("overview_polyline");
+                String points = overviewPolyline.getString("points");
+                List<LatLng> decodedPath = PolyUtil.decode(points);
+
+                // Draw a new polyline
+                PolylineOptions line = new PolylineOptions().width(5).color(Color.RED);
+                line.addAll(decodedPath);
+
+            }
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startLocationUpdates();
-        }
+
+
+
+    private void handleDirectionsError(VolleyError error) {
+        error.printStackTrace();
     }
+
+
     private void calculateAndDrawRoutes() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("LORA");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -198,19 +323,6 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
         });
     }
 
-    private void updateCurrentLocationMarker(LatLng currentLocation) {
-        if (currentLocationMarker != null) {
-            // Update the existing marker for the current location
-            currentLocationMarker.setPosition(currentLocation);
-        } else {
-            // Create a new marker for the current location
-            currentLocationMarker = map.addMarker(new MarkerOptions().position(currentLocation).title("You are here").icon(BitmapDescriptorFactory.fromResource(R.drawable.gps_marker)));
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
-        }
-        if (!waypoints.isEmpty()) {
-            drawRoute();
-        }
-    }
 
     private void drawRoute() {
         // Draw the polyline route

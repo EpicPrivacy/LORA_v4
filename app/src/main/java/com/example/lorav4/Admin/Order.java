@@ -3,7 +3,7 @@ package com.example.lorav4.Admin;
 public class Order {
     private String orderId;
     private String userId;
-    private String firstName,lastName,mobileNumber,order_name,order_type,order_count,order_amount;
+    private String firstName,lastName,mobileNumber,order_name,order_type,order_count,order_amount,order_status;
 
     private double latitude, longitude;
 
@@ -11,7 +11,7 @@ public class Order {
     public Order() {
         // Default constructor required for calls to DataSnapshot.getValue(Order.class)
     }
-    public Order(String orderId, String userId, String firstName,String lastName,String mobileNumber, String order_name, String order_type, String order_count, String order_amount,double latitude, double longitude) {
+    public Order(String orderId, String userId, String firstName,String lastName,String mobileNumber, String order_name, String order_type, String order_count, String order_amount,double latitude, double longitude, String order_status) {
         this.orderId = orderId;
         this.userId = userId;
         this.firstName = firstName;
@@ -23,6 +23,7 @@ public class Order {
         this.order_amount = order_amount;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.order_status = order_status;
     }
 
     public String getOrderId() {
@@ -111,5 +112,13 @@ public class Order {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public void setOrder_status(String order_status) {
+        this.order_status = order_status;
+    }
+
+    public String getOrder_status() {
+        return order_status;
     }
 }
