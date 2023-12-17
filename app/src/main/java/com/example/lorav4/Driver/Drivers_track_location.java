@@ -3,6 +3,7 @@ package com.example.lorav4.Driver;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -48,8 +49,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class Drivers_track_location extends AppCompatActivity implements OnMapReadyCallback {
+public class Drivers_track_location extends AppCompatActivity implements OnMapReadyCallback{
 
     private GoogleMap map;
     private LocationManager locationManager;
@@ -59,6 +61,7 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
     private Polyline routePolyline;
     public static final int REQUEST_LOCATION_PERMISSION = 1;
     private FusedLocationProviderClient fusedLocationClient;
+    private LatLng currentLocation,destination;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,8 +113,6 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                         double currentLongitude = location.getLongitude();
                         LatLng currentLocation = new LatLng(currentLatitude, currentLongitude);
 
-                        // Clear existing circles and markers on the map
-                        map.clear();
 
                         // Add a new circle for the current location with a larger radius
                         float markerSize = getResources().getDimension(R.dimen.marker_size);
@@ -138,7 +139,6 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                map.clear(); // Clear existing markers on the map
 
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Double latitude = dataSnapshot.child("latitude").getValue(Double.class);
@@ -250,25 +250,28 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
     }
     private void handleDirectionsResponse(JSONObject response) {
         try {
-            // Clear existing polylines on the map
+            if (map != null) {
 
+                JSONArray routes = response.getJSONArray("routes");
+                for (int i = 0; i < routes.length(); i++) {
+                    JSONObject route = routes.getJSONObject(i);
+                    JSONObject overviewPolyline = route.getJSONObject("overview_polyline");
+                    String points = overviewPolyline.getString("points");
+                    List<LatLng> decodedPath = PolyUtil.decode(points);
 
-            JSONArray routes = response.getJSONArray("routes");
-            for (int i = 0; i < routes.length(); i++) {
-                JSONObject route = routes.getJSONObject(i);
-                JSONObject overviewPolyline = route.getJSONObject("overview_polyline");
-                String points = overviewPolyline.getString("points");
-                List<LatLng> decodedPath = PolyUtil.decode(points);
+                    // Draw a new polyline
+                    Polyline line = map.addPolyline(new PolylineOptions().width(3).color(Color.BLUE));
+                    line.setPoints(decodedPath);
 
-                // Draw a new polyline
-                PolylineOptions line = new PolylineOptions().width(5).color(Color.RED);
-                line.addAll(decodedPath);
-
+                }
+            } else {
+                Log.e("Map", "Map object is null or not ready");
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
+
 
 
 
@@ -297,7 +300,15 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                         LatLng currentLocation = new LatLng(latitude, longitude);
                         waypoints.add(currentLocation);
                         break; // Stop after finding the current user's location
+
+                    } else {
+
+                    // Add other waypoints
+                    if (latitude != null && longitude != null) {
+                        destination = new LatLng(latitude, longitude);
+                        waypoints.add(destination);
                     }
+                }
                 }
 
                 if (!waypoints.isEmpty()) {
@@ -311,8 +322,10 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                             waypoints.add(location);
                         }
                     }
-                    // Draw the route
-                    drawRoute();
+                    if (currentLocation != null && destination != null) {
+                        // Draw the route
+                        drawRoute(currentLocation, destination);
+                    }
                 }
             }
 
@@ -324,17 +337,28 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
     }
 
 
-    private void drawRoute() {
+    private void drawRoute(LatLng currentLocation, LatLng destination) {
         // Draw the polyline route
-        if (routePolyline != null) {
-            routePolyline.remove(); // Remove existing polyline
-        }
 
         PolylineOptions polylineOptions = new PolylineOptions()
                 .addAll(waypoints)
                 .color(Color.BLUE)
                 .width(5);
         routePolyline = map.addPolyline(polylineOptions);
+
+
+        double distance = Double.parseDouble(calculateDistance(currentLocation, destination));
+        String formattedDistance = String.format(Locale.getDefault(), "%.2f km", distance);
+
+    }
+    private String calculateDistance(LatLng start, LatLng end) {
+        float[] results = new float[1];
+        Location.distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude, results);
+
+        // Convert meters to kilometers and format to two decimal places
+        double distanceInMeters = results[0];
+        double distanceInKm = distanceInMeters / 1000.0;
+        return String.format(Locale.getDefault(), "%.2f", distanceInKm);
     }
 
     @Override
