@@ -248,21 +248,29 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
 
         queue.add(request);
     }
+    // Add this array as a class variable
+    private final int[] polylineColors = {Color.YELLOW, Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA};
+
+    private int currentRouteColorIndex = 0; // Add this as a class variable
+
+    // Modify handleDirectionsResponse method
     private void handleDirectionsResponse(JSONObject response) {
         try {
             if (map != null) {
-
                 JSONArray routes = response.getJSONArray("routes");
-                for (int i = 0; i < routes.length(); i++) {
-                    JSONObject route = routes.getJSONObject(i);
+
+                if (currentRouteColorIndex < polylineColors.length && routes.length() > 0) {
+                    JSONObject route = routes.getJSONObject(0);
                     JSONObject overviewPolyline = route.getJSONObject("overview_polyline");
                     String points = overviewPolyline.getString("points");
                     List<LatLng> decodedPath = PolyUtil.decode(points);
 
-                    // Draw a new polyline
-                    Polyline line = map.addPolyline(new PolylineOptions().width(3).color(Color.BLUE));
-                    line.setPoints(decodedPath);
+                    // Draw a new polyline for the route with a different color
+                    PolylineOptions polylineOptions = new PolylineOptions().width(7).color(polylineColors[currentRouteColorIndex]);
+                    polylineOptions.addAll(decodedPath);
+                    map.addPolyline(polylineOptions);
 
+                    currentRouteColorIndex++;
                 }
             } else {
                 Log.e("Map", "Map object is null or not ready");
@@ -271,6 +279,7 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
             e.printStackTrace();
         }
     }
+
 
 
 
