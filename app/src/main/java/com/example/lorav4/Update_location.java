@@ -1,5 +1,6 @@
 package com.example.lorav4;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -13,33 +14,36 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class Update_location extends AppCompatActivity implements OnMapReadyCallback {
+
     private GoogleMap map;
+    private double currentLatitude;
+    private double currentLongitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_location);
 
+        // Retrieve current location data from the intent
+        Intent intent = getIntent();
+        currentLatitude = intent.getDoubleExtra("currentLatitude", 0.0);
+        currentLongitude = intent.getDoubleExtra("currentLongitude", 0.0);
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
-        // Retrieve the passed current location
-        if (getIntent().hasExtra("currentLocation")) {
-            LatLng currentLocation = getIntent().getParcelableExtra("currentLocation");
-            // Use the currentLocation as needed
-            // For example, you can add a marker to the map:
-            if (map != null) {
-                map.addMarker(new MarkerOptions().position(currentLocation).title("Current Location"));
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
-            }
-        }
-
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        // Use the GoogleMap object as needed
         map = googleMap;
+
+        // Move the camera to the current location and add a marker
+        LatLng currentLocation = new LatLng(currentLatitude, currentLongitude);
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+
+        // Add a marker at the current location
+        map.addMarker(new MarkerOptions().position(currentLocation).title("Current Location"));
     }
 }

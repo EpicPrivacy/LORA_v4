@@ -47,7 +47,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 
 public class Drivers_track_location extends AppCompatActivity implements OnMapReadyCallback{
@@ -122,6 +121,10 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
 
                         applyGreedyAlgorithm(currentLocation);
                     }
+
+
+
+
                 });
 
 
@@ -138,11 +141,18 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                     Double longitude = dataSnapshot.child("longitude").getValue(Double.class);
                     String firstName = dataSnapshot.child("firstName").getValue(String.class);
                     String lastName = dataSnapshot.child("lastName").getValue(String.class);
+                    String orderStatus = dataSnapshot.child("order_status").getValue(String.class);
+
 
                     if (latitude != null && longitude != null && firstName != null && lastName != null
                             && !firstName.equalsIgnoreCase("super") && !lastName.equalsIgnoreCase("admin")) {
-                        LatLng location = new LatLng(latitude, longitude);
-                        map.addMarker(new MarkerOptions().position(location).title(firstName + " " + lastName));
+
+                        if ("Ongoing".equalsIgnoreCase(orderStatus)) {
+                            LatLng location = new LatLng(latitude, longitude);
+                            waypoints.add(location); // Add waypoints for "Ongoing" orders
+                            map.addMarker(new MarkerOptions().position(location).title(firstName + " " + lastName));
+                        }
+
                     }
                 }
 
@@ -262,7 +272,7 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                     List<LatLng> decodedPath = PolyUtil.decode(points);
 
                     // Draw a new polyline for the route with a different color
-                    PolylineOptions polylineOptions = new PolylineOptions().width(7).color(getRandomColor());
+                    PolylineOptions polylineOptions = new PolylineOptions().width(10).color(getRandomColor());
                     polylineOptions.addAll(decodedPath);
                     map.addPolyline(polylineOptions);
                     if (routePolyline != null) {
@@ -302,12 +312,19 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                     Double longitude = dataSnapshot.child("longitude").getValue(Double.class);
                     String firstName = dataSnapshot.child("firstName").getValue(String.class);
                     String lastName = dataSnapshot.child("lastName").getValue(String.class);
+                    String orderStatus = dataSnapshot.child("order_status").getValue(String.class);
+
 
                     // Assuming you have a unique identifier for the current user
                     if (latitude != null && longitude != null && firstName != null && lastName != null
                             && !firstName.equalsIgnoreCase("super") && !lastName.equalsIgnoreCase("admin")) {
-                        LatLng currentLocation = new LatLng(latitude, longitude);
-                        waypoints.add(currentLocation);
+
+                        if ("Ongoing".equalsIgnoreCase(orderStatus)) {
+                            LatLng location = new LatLng(latitude, longitude);
+                            waypoints.add(location); // Add waypoints for "Ongoing" orders
+                            map.addMarker(new MarkerOptions().position(location).title(firstName + " " + lastName));
+                        }
+
                     } else {
                         // Add other waypoints
                         if (latitude != null && longitude != null) {
@@ -344,10 +361,6 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                 .addAll(waypoints)
                 .width(10);
         routePolyline = map.addPolyline(polylineOptions);
-
-        double distance = calculateTotalDistance(waypoints);
-        String formattedDistance = String.format(Locale.getDefault(), "%.2f km", distance);
-        Log.d("Distance", formattedDistance);
     }
 
 
