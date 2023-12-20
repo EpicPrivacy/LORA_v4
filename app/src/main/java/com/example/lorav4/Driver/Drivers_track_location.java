@@ -3,7 +3,6 @@ package com.example.lorav4.Driver;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -29,7 +28,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -50,6 +48,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 public class Drivers_track_location extends AppCompatActivity implements OnMapReadyCallback{
 
@@ -61,12 +60,14 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
     private Polyline routePolyline;
     public static final int REQUEST_LOCATION_PERMISSION = 1;
     private FusedLocationProviderClient fusedLocationClient;
-    private LatLng currentLocation,destination;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drivers_track_location);
+
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -106,6 +107,9 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+        map.setMyLocationEnabled(true);
+
+
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
@@ -114,27 +118,16 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
                         LatLng currentLocation = new LatLng(currentLatitude, currentLongitude);
 
 
-                        // Add a new circle for the current location with a larger radius
-                        float markerSize = getResources().getDimension(R.dimen.marker_size);
-                        currentLocationMarker = map.addMarker(new MarkerOptions()
-                                .position(currentLocation)
-                                .title("You are here")
-                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.gps_marker))
-                                .anchor(0.5f, 0.5f) // Center the marker on the location
-                                .flat(true)); // Keep the marker flat on the map
-                        currentLocationMarker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.gps_marker));
-
-
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
 
-                        applyGreedyAlgorithm();
+                        applyGreedyAlgorithm(currentLocation);
                     }
                 });
 
 
         map.getUiSettings().setCompassEnabled(true);
 
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("LORA");
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("orders");
 
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -183,6 +176,7 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
             return;
         }
 
+
     }
     private void checkLocationSettings() {
         LocationRequest locationRequest = new LocationRequest();
@@ -201,26 +195,27 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
             // Handle failure
         });
     }
-    private void applyGreedyAlgorithm() {
+    private void applyGreedyAlgorithm(LatLng currentLocation) {
         if (waypoints.size() >= 2) {
             List<LatLng> optimizedWaypoints = new ArrayList<>();
-            LatLng currentLocation = waypoints.get(0);
-            optimizedWaypoints.add(currentLocation);
+            LatLng currentLocationCopy = currentLocation;
 
-            while (waypoints.size() > 1) {
-                int minIndex = 1;
-                double minDistance = Double.MAX_VALUE;
+            optimizedWaypoints.add(currentLocationCopy);
+
+            while (!waypoints.isEmpty()) {
+                int minIndex = 0;
+                double minDistance = getDistance(currentLocationCopy, waypoints.get(0));
 
                 for (int i = 1; i < waypoints.size(); i++) {
-                    double distance = getDistance(currentLocation, waypoints.get(i));
+                    double distance = getDistance(currentLocationCopy, waypoints.get(i));
                     if (distance < minDistance) {
                         minDistance = distance;
                         minIndex = i;
                     }
                 }
 
-                currentLocation = waypoints.remove(minIndex);
-                optimizedWaypoints.add(currentLocation);
+                currentLocationCopy = waypoints.remove(minIndex);
+                optimizedWaypoints.add(currentLocationCopy);
             }
 
             for (int i = 0; i < optimizedWaypoints.size() - 1; i++) {
@@ -230,47 +225,50 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
             }
         }
     }
+
+
     private double getDistance(LatLng point1, LatLng point2) {
         return Math.sqrt(Math.pow(point1.latitude - point2.latitude, 2) +
                 Math.pow(point1.longitude - point2.longitude, 2));
     }
+
     private void getDirections(LatLng origin, LatLng destination) {
         String apiKey = "AIzaSyCLZU8pSVc_DisAyPWTpNAYHCVlN9-8mVs";
         String url = "https://maps.googleapis.com/maps/api/directions/json?" +
                 "origin=" + origin.latitude + "," + origin.longitude +
                 "&destination=" + destination.latitude + "," + destination.longitude +
+                "&mode=driving" +
                 "&key=" + apiKey;
 
         RequestQueue queue = Volley.newRequestQueue(this);
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
-                this::handleDirectionsResponse,
+                response -> handleDirectionsResponse(response, origin, destination),
                 this::handleDirectionsError);
 
         queue.add(request);
     }
-    // Add this array as a class variable
-    private final int[] polylineColors = {Color.YELLOW, Color.RED, Color.GREEN, Color.BLUE, Color.MAGENTA};
 
-    private int currentRouteColorIndex = 0; // Add this as a class variable
 
     // Modify handleDirectionsResponse method
-    private void handleDirectionsResponse(JSONObject response) {
+    private void handleDirectionsResponse(JSONObject response, LatLng origin, LatLng destination) {
         try {
             if (map != null) {
                 JSONArray routes = response.getJSONArray("routes");
 
-                if (currentRouteColorIndex < polylineColors.length && routes.length() > 0) {
+                if (routes.length() > 0) {
                     JSONObject route = routes.getJSONObject(0);
                     JSONObject overviewPolyline = route.getJSONObject("overview_polyline");
                     String points = overviewPolyline.getString("points");
                     List<LatLng> decodedPath = PolyUtil.decode(points);
 
                     // Draw a new polyline for the route with a different color
-                    PolylineOptions polylineOptions = new PolylineOptions().width(7).color(polylineColors[currentRouteColorIndex]);
+                    PolylineOptions polylineOptions = new PolylineOptions().width(7).color(getRandomColor());
                     polylineOptions.addAll(decodedPath);
                     map.addPolyline(polylineOptions);
+                    if (routePolyline != null) {
+                        routePolyline.remove();
+                    }
 
-                    currentRouteColorIndex++;
                 }
             } else {
                 Log.e("Map", "Map object is null or not ready");
@@ -279,8 +277,11 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
             e.printStackTrace();
         }
     }
-
-
+    private int getRandomColor() {
+        // Generate a random color for each route
+        Random random = new Random();
+        return Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+    }
 
 
 
@@ -290,7 +291,7 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
 
 
     private void calculateAndDrawRoutes() {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("LORA");
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("orders");
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -304,37 +305,21 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
 
                     // Assuming you have a unique identifier for the current user
                     if (latitude != null && longitude != null && firstName != null && lastName != null
-                            && !firstName.equalsIgnoreCase("super") && !lastName.equalsIgnoreCase("admin")
-                            && firstName.equalsIgnoreCase("current") && lastName.equalsIgnoreCase("user")) {
+                            && !firstName.equalsIgnoreCase("super") && !lastName.equalsIgnoreCase("admin")) {
                         LatLng currentLocation = new LatLng(latitude, longitude);
                         waypoints.add(currentLocation);
-                        break; // Stop after finding the current user's location
-
                     } else {
-
-                    // Add other waypoints
-                    if (latitude != null && longitude != null) {
-                        destination = new LatLng(latitude, longitude);
-                        waypoints.add(destination);
-                    }
-                }
-                }
-
-                if (!waypoints.isEmpty()) {
-                    // Add other waypoints
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        Double latitude = dataSnapshot.child("latitude").getValue(Double.class);
-                        Double longitude = dataSnapshot.child("longitude").getValue(Double.class);
-
+                        // Add other waypoints
                         if (latitude != null && longitude != null) {
                             LatLng location = new LatLng(latitude, longitude);
                             waypoints.add(location);
                         }
                     }
-                    if (currentLocation != null && destination != null) {
-                        // Draw the route
-                        drawRoute(currentLocation, destination);
-                    }
+                }
+
+                if (!waypoints.isEmpty() && waypoints.size() > 1) {
+                    // Draw the route only if there are at least two waypoints
+                    drawRoute(waypoints);
                 }
             }
 
@@ -346,28 +331,32 @@ public class Drivers_track_location extends AppCompatActivity implements OnMapRe
     }
 
 
-    private void drawRoute(LatLng currentLocation, LatLng destination) {
-        // Draw the polyline route
 
+
+    private void drawRoute(List<LatLng> waypoints) {
+        // Clear existing polyline
+        if (routePolyline != null) {
+            routePolyline.remove();
+        }
+
+        // Draw the new polyline route
         PolylineOptions polylineOptions = new PolylineOptions()
                 .addAll(waypoints)
-                .color(Color.BLUE)
-                .width(5);
+                .width(10);
         routePolyline = map.addPolyline(polylineOptions);
 
-
-        double distance = Double.parseDouble(calculateDistance(currentLocation, destination));
+        double distance = calculateTotalDistance(waypoints);
         String formattedDistance = String.format(Locale.getDefault(), "%.2f km", distance);
-
+        Log.d("Distance", formattedDistance);
     }
-    private String calculateDistance(LatLng start, LatLng end) {
-        float[] results = new float[1];
-        Location.distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude, results);
 
-        // Convert meters to kilometers and format to two decimal places
-        double distanceInMeters = results[0];
-        double distanceInKm = distanceInMeters / 1000.0;
-        return String.format(Locale.getDefault(), "%.2f", distanceInKm);
+
+    private double calculateTotalDistance(List<LatLng> waypoints) {
+        double totalDistance = 0.0;
+        for (int i = 0; i < waypoints.size() - 1; i++) {
+            totalDistance += getDistance(waypoints.get(i), waypoints.get(i + 1));
+        }
+        return totalDistance;
     }
 
     @Override
